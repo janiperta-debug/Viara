@@ -23,28 +23,28 @@ export default function KirjauduPage() {
   );
 
   return (
-    <main className="flex min-h-screen flex-1 items-center justify-center bg-slate-50 px-6 py-16">
+    <main className="flex min-h-screen flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center gap-2 pb-8 text-center">
+        <div className="flex flex-col items-center gap-3 pb-8 text-center">
           <Image
             src="/viara-logo.png"
-            alt="Viara logo"
-            width={280}
-            height={90}
+            alt="Viara"
+            width={560}
+            height={180}
             priority
-            className="h-auto w-40"
+            className="logo-blend h-auto w-72"
           />
-          <p className="text-sm font-medium text-slate-500">
-            Operational Maintenance Platform
+          <p className="text-sm font-medium tracking-wide text-muted">
+            The work speaks for itself.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="metal-card rounded-2xl p-8">
           <div className="mb-6">
-            <h1 className="text-xl font-semibold text-slate-900">
+            <h1 className="text-xl font-semibold text-foreground">
               Kirjaudu sisään
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted">
               Syötä tunnuksesi jatkaaksesi.
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function KirjauduPage() {
             <div>
               <label
                 htmlFor="email"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-foreground"
               >
                 Sähköposti
               </label>
@@ -63,7 +63,7 @@ export default function KirjauduPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="nimi@yritys.fi"
               />
             </div>
@@ -71,7 +71,7 @@ export default function KirjauduPage() {
             <div>
               <label
                 htmlFor="password"
-                className="mb-1.5 block text-sm font-medium text-slate-700"
+                className="mb-1.5 block text-sm font-medium text-foreground"
               >
                 Salasana
               </label>
@@ -81,7 +81,7 @@ export default function KirjauduPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600/20"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2.5 text-base text-foreground placeholder:text-muted/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="••••••••"
               />
             </div>
@@ -89,7 +89,7 @@ export default function KirjauduPage() {
             {tulos.error && (
               <div
                 role="alert"
-                className="rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700"
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
               >
                 {tulos.error}
               </div>
@@ -98,14 +98,14 @@ export default function KirjauduPage() {
             <button
               type="submit"
               disabled={pending}
-              className="flex h-11 w-full items-center justify-center rounded-full bg-emerald-600 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary flex h-12 w-full items-center justify-center rounded-full text-base font-semibold text-primary-foreground transition-all disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? "Kirjaudutaan…" : "Kirjaudu"}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        <p className="mt-6 text-center text-xs text-muted">
           © {new Date().getFullYear()} Viara. Kaikki oikeudet pidätetään.
         </p>
       </div>

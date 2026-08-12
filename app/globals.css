@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brushed-aluminum base + premium neutrals */
+  --background: #d9dde2;
+  --foreground: #1b2a47;
+  --card: #f5f6f8;
+  --card-foreground: #1b2a47;
+  --muted: #6b7480;
+  --border: #c3c9d0;
+  /* Primary green (operational actions) */
+  --primary: #4a7d2e;
+  --primary-foreground: #ffffff;
+  /* Logo blue/teal accent — used sparingly */
+  --accent: #2f6df6;
+  --destructive: #c0392b;
+  --radius: 1rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-lg: var(--radius);
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Brushed aluminum surface — fine vertical grain + soft top light */
+.bg-brushed {
+  background-color: #d9dde2;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55),
+      rgba(255, 255, 255, 0) 42%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.32) 0px,
+      rgba(255, 255, 255, 0.32) 1px,
+      rgba(0, 0, 0, 0.018) 2px,
+      rgba(0, 0, 0, 0.018) 3px
+    ),
+    linear-gradient(180deg, #eceff2 0%, #d3d8dd 55%, #e2e6ea 100%);
+}
+
+/* Premium raised card with subtle 3D depth */
+.metal-card {
+  background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 40px -18px rgba(27, 42, 71, 0.28),
+    0 2px 6px rgba(27, 42, 71, 0.08);
+}
+
+/* Green operational button with tactile depth */
+.btn-primary {
+  background: linear-gradient(180deg, #57893a 0%, #43712a 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 10px 22px -10px rgba(58, 102, 36, 0.65);
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #5f9440 0%, #497a2e 100%);
+}
+.btn-primary:active {
+  background: linear-gradient(180deg, #43712a 0%, #57893a 100%);
+}
+
+/* White-background logo blends onto the metal surface */
+.logo-blend {
+  mix-blend-mode: multiply;
 }

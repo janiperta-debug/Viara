@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Viara — Operational Maintenance Platform",
+  title: "Viara — The work speaks for itself.",
   description:
     "Viara helps organizations transform complex maintenance workflows into clear digital operations.",
 };
@@ -28,9 +28,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} bg-brushed h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="bg-brushed min-h-full flex flex-col">{children}</body>
     </html>
   );
 }
