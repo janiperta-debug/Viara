@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { kirjaudu } from "@/app/actions/kirjaudu";
 
 type KirjautumisTulos = {
@@ -15,12 +16,19 @@ const alkuTila: KirjautumisTulos = {
 };
 
 export default function KirjauduPage() {
+  const router = useRouter();
   const [tulos, formAction, pending] = useActionState(
     async (_previousState: KirjautumisTulos, formData: FormData) => {
       return kirjaudu(formData);
     },
     alkuTila
   );
+
+  useEffect(() => {
+    if (tulos.success) {
+      router.push("/tyo");
+    }
+  }, [tulos.success, router]);
 
   return (
     <main className="flex min-h-screen flex-1 items-center justify-center px-6 py-16">

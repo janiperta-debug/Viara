@@ -1,0 +1,110 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Truck, Snowflake } from "lucide-react";
+import { asetaTyovaline } from "@/app/actions/aseta-tyovaline";
+
+type Tyovaline = {
+  id: string;
+  nimi: string;
+  Icon: typeof Truck;
+};
+
+// Työvälinetyypit tulevat myöhemmin tietokannasta; toistaiseksi paikalliset ID:t.
+const TYOVALINEET: Tyovaline[] = [
+  { id: "aura", nimi: "Aura", Icon: Truck },
+  { id: "hiekoitin", nimi: "Hiekoitin", Icon: Snowflake },
+];
+
+function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
+  const [aktiivinen, setAktiivinen] = useState(true);
+  const [, startTransition] = useTransition();
+  const { Icon, nimi, id } = tyovaline;
+
+  function toggle() {
+    const seuraava = !aktiivinen;
+    setAktiivinen(seuraava);
+
+    // Yritetään kirjata tapahtuma taustalla; UI ei jää odottamaan.
+    startTransition(async () => {
+      const tulos = await asetaTyovaline({
+        tyovalinetyyppiId: id,
+        aktiivinen: seuraava,
+      });
+      if (!tulos.success) {
+        console.log("[v0] Työvälineen tila ei tallentunut:", tulos.error);
+      }
+    });
+  }
+
+  return (
+    <div className="metal-card flex flex-col gap-4 rounded-2xl p-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-foreground shadow-sm">
+          <Icon className="h-6 w-6" strokeWidth={1.75} />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-base font-semibold text-foreground">
+            {nimi}
+          </p>
+          <p className="text-sm text-muted">
+            {aktiivinen ? "Käytössä" : "Pois käytöstä"}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={aktiivinen}
+        aria-label={`${nimi}: ${aktiivinen ? "käytössä" : "pois käytöstä"}`}
+        onClick={toggle}
+        className={`relative flex h-10 w-full items-center rounded-full px-1 transition-colors ${
+          aktiivinen ? "btn-primary" : "bg-border"
+        }`}
+      >
+        <span
+          className={`text-xs font-bold tracking-wide ${
+            aktiivinen
+              ? "ml-3 text-primary-foreground"
+              : "ml-auto mr-3 text-muted"
+          }`}
+        >
+          {aktiivinen ? "ON" : "OFF"}
+        </span>
+        <span
+          className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-all ${
+            aktiivinen ? "right-1" : "left-1"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
+export function EquipmentPanel() {
+  return (
+    <section aria-labelledby="tyovalineet-otsikko">
+      <div className="mb-3 flex items-center justify-between px-1">
+        <h2
+          id="tyovalineet-otsikko"
+          className="text-xs font-semibold uppercase tracking-wider text-muted"
+        >
+          Aktiiviset työvälineet
+        </h2>
+        <button
+          type="button"
+          className="flex items-center gap-1 text-sm font-medium text-foreground"
+        >
+          Muuta
+          <span aria-hidden>›</span>
+        </button>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {TYOVALINEET.map((t) => (
+          <ToggleCard key={t.id} tyovaline={t} />
+        ))}
+      </div>
+    </section>
+  );
+}
