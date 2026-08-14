@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brushed-aluminum base + premium neutrals */
+  --background: #d9dde2;
+  --foreground: #1b2a47;
+  --card: #f5f6f8;
+  --card-foreground: #1b2a47;
+  --muted: #6b7480;
+  --border: #c3c9d0;
+  /* Primary teal-blue (from Viara logo) — operational actions */
+  --primary: #0e7c86;
+  --primary-foreground: #ffffff;
+  /* Logo blue accent — used sparingly */
+  --accent: #2f6df6;
+  --destructive: #c0392b;
+  --radius: 1rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-lg: var(--radius);
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/*
+ * Brushed aluminum material — procedural, no bitmap.
+ * Layered (top -> bottom):
+ *   1. soft broad top highlight
+ *   2. very subtle edge vignette for depth
+ *   3. fine isotropic micro-grain (SVG feTurbulence, tiny alpha)
+ *   4. directional brush streaks (SVG feTurbulence stretched vertically)
+ *   5. light cool aluminum base gradient
+ * All noise layers are grayscale with extremely low uniform alpha so the
+ * marks merge into a continuous satin-metal surface, not a visible pattern.
+ */
+.bg-brushed {
+  background-color: #dfe3e7;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 38%
+    ),
+    radial-gradient(
+      130% 100% at 50% 28%,
+      rgba(255, 255, 255, 0) 55%,
+      rgba(22, 32, 52, 0.06) 100%
+    ),
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%3E%3Cfilter%20id='g'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20seed='3'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type='linear'%20slope='0'%20intercept='0.035'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='120'%20height='120'%20filter='url(%23g)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='320'%3E%3Cfilter%20id='b'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.9%200.01'%20numOctaves='3'%20seed='14'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type='linear'%20slope='0'%20intercept='0.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='320'%20height='320'%20filter='url(%23b)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #eef1f4 0%, #dde1e6 55%, #e6e9ed 100%);
+  background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat;
+  background-size: 100% 100%, 100% 100%, 120px 120px, 320px 320px, 100% 100%;
+}
+
+/* Premium raised card with subtle 3D depth */
+.metal-card {
+  background: linear-gradient(180deg, #ffffff 0%, #eef1f4 100%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 40px -18px rgba(27, 42, 71, 0.28),
+    0 2px 6px rgba(27, 42, 71, 0.08);
+}
+
+/* Teal-blue operational button with tactile depth (Viara brand color) */
+.btn-primary {
+  background: linear-gradient(180deg, #14929d 0%, #0b6169 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.28) inset,
+    0 10px 22px -10px rgba(11, 97, 105, 0.65);
+}
+.btn-primary:hover {
+  background: linear-gradient(180deg, #1aa3ae 0%, #0f6e78 100%);
+}
+.btn-primary:active {
+  background: linear-gradient(180deg, #0b6169 0%, #14929d 100%);
+}
+
+/* White-background logo blends onto the metal surface */
+.logo-blend {
+  mix-blend-mode: multiply;
 }
