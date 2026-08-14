@@ -20,7 +20,7 @@ export function BottomNav({ active = "tyo" }: { active?: NavKey }) {
   return (
     <nav
       aria-label="Päänavigaatio"
-      className="metal-card sticky bottom-0 z-10 flex items-stretch justify-around rounded-t-2xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+      className="metal-card sticky bottom-0 z-10 mx-auto flex w-full max-w-md items-stretch justify-around rounded-t-2xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:max-w-2xl md:px-4 lg:max-w-5xl lg:justify-center lg:gap-4 lg:px-10"
     >
       {ITEMS.map(({ key, label, Icon, badge }) => {
         const isActive = key === active;
@@ -29,10 +29,10 @@ export function BottomNav({ active = "tyo" }: { active?: NavKey }) {
             key={key}
             type="button"
             aria-current={isActive ? "page" : undefined}
-            className={`relative flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors ${
+            className={`relative flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               isActive
                 ? "bg-white text-primary shadow-sm"
-                : "text-muted"
+                : "text-muted active:text-foreground"
             }`}
           >
             <span className="relative">

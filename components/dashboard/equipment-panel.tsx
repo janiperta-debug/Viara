@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Truck, Snowflake } from "lucide-react";
-import { asetaTyovaline } from "@/app/actions/aseta-tyovaline";
 
 type Tyovaline = {
   id: string;
@@ -10,7 +9,8 @@ type Tyovaline = {
   Icon: typeof Truck;
 };
 
-// Työvälinetyypit tulevat myöhemmin tietokannasta; toistaiseksi paikalliset ID:t.
+// UI-vaihe: pelkkä paikallinen tila. Kytketään myöhemmin
+// app/actions/aseta-tyovaline.ts -actioniin kun ulkoasu on hyväksytty.
 const TYOVALINEET: Tyovaline[] = [
   { id: "aura", nimi: "Aura", Icon: Truck },
   { id: "hiekoitin", nimi: "Hiekoitin", Icon: Snowflake },
@@ -18,24 +18,7 @@ const TYOVALINEET: Tyovaline[] = [
 
 function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
   const [aktiivinen, setAktiivinen] = useState(true);
-  const [, startTransition] = useTransition();
-  const { Icon, nimi, id } = tyovaline;
-
-  function toggle() {
-    const seuraava = !aktiivinen;
-    setAktiivinen(seuraava);
-
-    // Yritetään kirjata tapahtuma taustalla; UI ei jää odottamaan.
-    startTransition(async () => {
-      const tulos = await asetaTyovaline({
-        tyovalinetyyppiId: id,
-        aktiivinen: seuraava,
-      });
-      if (!tulos.success) {
-        console.log("[v0] Työvälineen tila ei tallentunut:", tulos.error);
-      }
-    });
-  }
+  const { Icon, nimi } = tyovaline;
 
   return (
     <div className="metal-card flex flex-col gap-4 rounded-2xl p-4">
@@ -58,8 +41,8 @@ function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
         role="switch"
         aria-checked={aktiivinen}
         aria-label={`${nimi}: ${aktiivinen ? "käytössä" : "pois käytöstä"}`}
-        onClick={toggle}
-        className={`relative flex h-10 w-full items-center rounded-full px-1 transition-colors ${
+        onClick={() => setAktiivinen((v) => !v)}
+        className={`relative flex h-10 w-full items-center rounded-full px-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
           aktiivinen ? "btn-primary" : "bg-border"
         }`}
       >
@@ -73,7 +56,7 @@ function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
           {aktiivinen ? "ON" : "OFF"}
         </span>
         <span
-          className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-all ${
+          className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-all duration-200 ${
             aktiivinen ? "right-1" : "left-1"
           }`}
         />
@@ -94,7 +77,7 @@ export function EquipmentPanel() {
         </h2>
         <button
           type="button"
-          className="flex items-center gap-1 text-sm font-medium text-foreground"
+          className="flex items-center gap-1 text-sm font-medium text-foreground transition-colors hover:text-primary"
         >
           Muuta
           <span aria-hidden>›</span>
