@@ -20,16 +20,13 @@ export default function TyoPage() {
                 Ville
               </h1>
               <div className="mt-3 flex items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 rounded-full bg-primary"
-                  aria-hidden
-                />
-                <div className="text-sm">
-                  <p className="font-medium text-foreground">
-                    Työvuoro käynnissä
-                  </p>
-                  <p className="text-muted">06:00 – 14:00</p>
-                </div>
+                <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-600" />
+                </span>
+                <p className="text-sm font-medium text-foreground">
+                  Työ käynnissä
+                </p>
               </div>
             </div>
             <Image

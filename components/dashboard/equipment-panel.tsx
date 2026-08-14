@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Truck, Snowflake } from "lucide-react";
+import { asetaTyovaline } from "@/app/actions/aseta-tyovaline";
 
 type Tyovaline = {
   id: string;
@@ -9,8 +10,7 @@ type Tyovaline = {
   Icon: typeof Truck;
 };
 
-// UI-vaihe: pelkkä paikallinen tila. Kytketään myöhemmin
-// app/actions/aseta-tyovaline.ts -actioniin kun ulkoasu on hyväksytty.
+// Työvälinetyypit tulevat myöhemmin tietokannasta; toistaiseksi paikalliset ID:t.
 const TYOVALINEET: Tyovaline[] = [
   { id: "aura", nimi: "Aura", Icon: Truck },
   { id: "hiekoitin", nimi: "Hiekoitin", Icon: Snowflake },
@@ -18,7 +18,24 @@ const TYOVALINEET: Tyovaline[] = [
 
 function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
   const [aktiivinen, setAktiivinen] = useState(true);
-  const { Icon, nimi } = tyovaline;
+  const [, startTransition] = useTransition();
+  const { Icon, nimi, id } = tyovaline;
+
+  function toggle() {
+    const seuraava = !aktiivinen;
+    setAktiivinen(seuraava);
+
+    // Yritetään kirjata tapahtuma taustalla; UI ei jää odottamaan.
+    startTransition(async () => {
+      const tulos = await asetaTyovaline({
+        tyovalinetyyppiId: id,
+        aktiivinen: seuraava,
+      });
+      if (!tulos.success) {
+        console.log("[v0] Työvälineen tila ei tallentunut:", tulos.error);
+      }
+    });
+  }
 
   return (
     <div className="metal-card flex flex-col gap-4 rounded-2xl p-4">
@@ -41,7 +58,7 @@ function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
         role="switch"
         aria-checked={aktiivinen}
         aria-label={`${nimi}: ${aktiivinen ? "käytössä" : "pois käytöstä"}`}
-        onClick={() => setAktiivinen((v) => !v)}
+        onClick={toggle}
         className={`relative flex h-10 w-full items-center rounded-full px-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
           aktiivinen ? "btn-primary" : "bg-border"
         }`}
