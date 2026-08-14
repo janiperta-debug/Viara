@@ -8,10 +8,10 @@
   --card-foreground: #1b2a47;
   --muted: #6b7480;
   --border: #c3c9d0;
-  /* Primary green (operational actions) */
-  --primary: #4a7d2e;
+  /* Primary teal-blue (from Viara logo) — operational actions */
+  --primary: #0e7c86;
   --primary-foreground: #ffffff;
-  /* Logo blue/teal accent — used sparingly */
+  /* Logo blue accent — used sparingly */
   --accent: #2f6df6;
   --destructive: #c0392b;
   --radius: 1rem;
@@ -79,18 +79,18 @@ body {
     0 2px 6px rgba(27, 42, 71, 0.08);
 }
 
-/* Green operational button with tactile depth */
+/* Teal-blue operational button with tactile depth (Viara brand color) */
 .btn-primary {
-  background: linear-gradient(180deg, #57893a 0%, #43712a 100%);
+  background: linear-gradient(180deg, #14929d 0%, #0b6169 100%);
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.28) inset,
-    0 10px 22px -10px rgba(58, 102, 36, 0.65);
+    0 10px 22px -10px rgba(11, 97, 105, 0.65);
 }
 .btn-primary:hover {
-  background: linear-gradient(180deg, #5f9440 0%, #497a2e 100%);
+  background: linear-gradient(180deg, #1aa3ae 0%, #0f6e78 100%);
 }
 .btn-primary:active {
-  background: linear-gradient(180deg, #43712a 0%, #57893a 100%);
+  background: linear-gradient(180deg, #0b6169 0%, #14929d 100%);
 }
 
 /* White-background logo blends onto the metal surface */

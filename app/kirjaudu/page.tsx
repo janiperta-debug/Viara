@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { kirjaudu } from "@/app/actions/kirjaudu";
+import { LanguageToggle } from "@/components/language-toggle";
 
 type KirjautumisTulos = {
   success: boolean;
@@ -42,6 +43,7 @@ export default function KirjauduPage() {
             priority
             className="logo-blend h-auto w-72"
           />
+          <LanguageToggle />
           <p className="text-sm font-medium tracking-wide text-muted">
             The work speaks for itself.
           </p>
@@ -113,7 +115,25 @@ export default function KirjauduPage() {
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-muted">
+        {/* Lakitekstien linkit — kohteet ja sisältö toimitetaan myöhemmin. */}
+        <nav
+          aria-label="Lakitekstit"
+          className="mt-6 flex items-center justify-center gap-3 text-xs font-medium text-muted"
+        >
+          <a href="#" className="hover:text-foreground hover:underline">
+            Tietosuojaseloste
+          </a>
+          <span aria-hidden>·</span>
+          <a href="#" className="hover:text-foreground hover:underline">
+            Käyttöehdot
+          </a>
+          <span aria-hidden>·</span>
+          <a href="#" className="hover:text-foreground hover:underline">
+            Evästeet
+          </a>
+        </nav>
+
+        <p className="mt-3 text-center text-xs text-muted">
           © {new Date().getFullYear()} Viara. Kaikki oikeudet pidätetään.
         </p>
       </div>
