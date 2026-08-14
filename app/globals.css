@@ -38,23 +38,35 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Brushed aluminum surface — fine vertical grain + soft top light */
+/*
+ * Brushed aluminum material — procedural, no bitmap.
+ * Layered (top -> bottom):
+ *   1. soft broad top highlight
+ *   2. very subtle edge vignette for depth
+ *   3. fine isotropic micro-grain (SVG feTurbulence, tiny alpha)
+ *   4. directional brush streaks (SVG feTurbulence stretched vertically)
+ *   5. light cool aluminum base gradient
+ * All noise layers are grayscale with extremely low uniform alpha so the
+ * marks merge into a continuous satin-metal surface, not a visible pattern.
+ */
 .bg-brushed {
-  background-color: #d9dde2;
+  background-color: #dfe3e7;
   background-image:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.55),
-      rgba(255, 255, 255, 0) 42%
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 38%
     ),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.32) 0px,
-      rgba(255, 255, 255, 0.32) 1px,
-      rgba(0, 0, 0, 0.018) 2px,
-      rgba(0, 0, 0, 0.018) 3px
+    radial-gradient(
+      130% 100% at 50% 28%,
+      rgba(255, 255, 255, 0) 55%,
+      rgba(22, 32, 52, 0.06) 100%
     ),
-    linear-gradient(180deg, #eceff2 0%, #d3d8dd 55%, #e2e6ea 100%);
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%3E%3Cfilter%20id='g'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.8'%20numOctaves='2'%20seed='3'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type='linear'%20slope='0'%20intercept='0.035'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='120'%20height='120'%20filter='url(%23g)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='320'%3E%3Cfilter%20id='b'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.9%200.01'%20numOctaves='3'%20seed='14'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA%20type='linear'%20slope='0'%20intercept='0.1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect%20width='320'%20height='320'%20filter='url(%23b)'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #eef1f4 0%, #dde1e6 55%, #e6e9ed 100%);
+  background-repeat: no-repeat, no-repeat, repeat, repeat, no-repeat;
+  background-size: 100% 100%, 100% 100%, 120px 120px, 320px 320px, 100% 100%;
 }
 
 /* Premium raised card with subtle 3D depth */
