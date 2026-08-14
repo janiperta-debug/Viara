@@ -20,7 +20,7 @@ export function BottomNav({ active = "tyo" }: { active?: NavKey }) {
   return (
     <nav
       aria-label="Päänavigaatio"
-      className="metal-card sticky bottom-0 z-10 flex items-stretch justify-around rounded-t-2xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2"
+      className="metal-card sticky bottom-0 z-10 mx-auto flex w-full max-w-md items-stretch justify-around rounded-t-2xl px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 md:max-w-2xl md:px-4 lg:max-w-5xl lg:justify-center lg:gap-4 lg:px-10"
     >
       {ITEMS.map(({ key, label, Icon, badge }) => {
         const isActive = key === active;
