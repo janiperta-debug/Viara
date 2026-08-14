@@ -29,10 +29,10 @@ export function BottomNav({ active = "tyo" }: { active?: NavKey }) {
             key={key}
             type="button"
             aria-current={isActive ? "page" : undefined}
-            className={`relative flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors ${
+            className={`relative flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
               isActive
                 ? "bg-white text-primary shadow-sm"
-                : "text-muted"
+                : "text-muted active:text-foreground"
             }`}
           >
             <span className="relative">

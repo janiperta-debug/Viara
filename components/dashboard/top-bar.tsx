@@ -16,7 +16,7 @@ export function TopBar({ notifications = 3 }: { notifications?: number }) {
         <button
           type="button"
           aria-label={`Ilmoitukset, ${notifications} uutta`}
-          className="metal-card relative flex h-11 w-11 items-center justify-center rounded-full"
+          className="metal-card relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <Bell className="h-5 w-5 text-foreground" strokeWidth={1.75} />
           {notifications > 0 && (

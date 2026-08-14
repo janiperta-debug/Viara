@@ -52,7 +52,7 @@ export default function TyoPage() {
             </h2>
             <button
               type="button"
-              className="metal-card flex w-full items-center gap-4 rounded-2xl p-4 text-left md:p-5"
+              className="metal-card flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:p-5"
             >
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
                 <MapPin className="h-6 w-6" strokeWidth={1.75} />
@@ -75,7 +75,7 @@ export default function TyoPage() {
           {/* Avaa operatiivinen kartta */}
           <button
             type="button"
-            className="btn-primary flex h-16 w-full items-center justify-between rounded-2xl px-5 text-primary-foreground md:h-[4.5rem]"
+            className="btn-primary flex h-16 w-full items-center justify-between rounded-2xl px-5 text-primary-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:h-[4.5rem]"
           >
             <span className="flex items-center gap-3">
               <Map className="h-6 w-6" strokeWidth={1.75} />
@@ -95,7 +95,7 @@ export default function TyoPage() {
           {/* Ilmoita poikkeamasta */}
           <button
             type="button"
-            className="metal-card flex w-full items-center gap-4 rounded-2xl p-4 text-left md:p-5"
+            className="metal-card flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:p-5"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-foreground shadow-sm">
               <AlertTriangle className="h-6 w-6" strokeWidth={1.75} />
