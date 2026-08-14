@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { MapPin, Map, ChevronRight, AlertTriangle } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { BottomNav } from "@/components/dashboard/bottom-nav";
@@ -20,16 +21,13 @@ export default function TyoPage() {
                 Ville
               </h1>
               <div className="mt-3 flex items-center gap-2">
-                <span
-                  className="h-2.5 w-2.5 rounded-full bg-primary"
-                  aria-hidden
-                />
-                <div className="text-sm">
-                  <p className="font-medium text-foreground">
-                    Työvuoro käynnissä
-                  </p>
-                  <p className="text-muted">06:00 – 14:00</p>
-                </div>
+                <span className="relative flex h-2.5 w-2.5" aria-hidden>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-600" />
+                </span>
+                <p className="text-sm font-medium text-foreground">
+                  Työ käynnissä
+                </p>
               </div>
             </div>
             <Image
@@ -73,8 +71,8 @@ export default function TyoPage() {
           </section>
 
           {/* Avaa operatiivinen kartta */}
-          <button
-            type="button"
+          <Link
+            href="/kartta"
             className="btn-primary flex h-16 w-full items-center justify-between rounded-2xl px-5 text-primary-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:h-[4.5rem]"
           >
             <span className="flex items-center gap-3">
@@ -84,7 +82,7 @@ export default function TyoPage() {
               </span>
             </span>
             <ChevronRight className="h-5 w-5" />
-          </button>
+          </Link>
         </div>
 
         {/* Oikea palsta: työvälineet + poikkeamailmoitus */}
