@@ -14,7 +14,13 @@ const ITEMS: {
 }[] = [
   { key: "tyo", label: "Työ", Icon: Home, href: "/tyo" },
   { key: "kartta", label: "Kartta", Icon: Map, href: "/kartta" },
-  { key: "havainnot", label: "Havainnot", Icon: AlertTriangle, badge: 3 },
+  {
+    key: "havainnot",
+    label: "Havainnot",
+    Icon: AlertTriangle,
+    badge: 3,
+    href: "/havainnot",
+  },
   { key: "profiili", label: "Profiili", Icon: User },
 ];
 
