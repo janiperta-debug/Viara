@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Map, ChevronRight, AlertTriangle } from "lucide-react";
+import { Map, ChevronRight, AlertTriangle } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
-import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { EquipmentPanel } from "@/components/dashboard/equipment-panel";
 
 export default function TyoPage() {
@@ -40,36 +39,6 @@ export default function TyoPage() {
             />
           </section>
 
-          {/* Seuraava kohde */}
-          <section aria-labelledby="seuraava-kohde-otsikko">
-            <h2
-              id="seuraava-kohde-otsikko"
-              className="mb-3 px-1 text-xs font-semibold uppercase tracking-wider text-muted"
-            >
-              Seuraava kohde
-            </h2>
-            <button
-              type="button"
-              className="metal-card flex w-full items-center gap-4 rounded-2xl p-4 text-left transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:p-5"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
-                <MapPin className="h-6 w-6" strokeWidth={1.75} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-base font-semibold text-foreground">
-                  As Oy Mäntyrinne
-                </span>
-                <span className="block truncate text-sm text-muted">
-                  Keskuskatu 12, 05800 Hyvinkää
-                </span>
-              </span>
-              <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-muted">
-                180 m
-                <ChevronRight className="h-5 w-5" />
-              </span>
-            </button>
-          </section>
-
           {/* Avaa operatiivinen kartta */}
           <Link
             href="/kartta"
@@ -105,8 +74,6 @@ export default function TyoPage() {
           </button>
         </div>
       </main>
-
-      <BottomNav active="tyo" />
     </div>
   );
 }

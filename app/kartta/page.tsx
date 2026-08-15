@@ -1,5 +1,4 @@
 import { TopBar } from "@/components/dashboard/top-bar";
-import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { TilanneVisualisointi } from "@/components/kartta/tilanne-visualisointi";
 import { URAKAN_TILANNE } from "@/lib/urakka-mock";
 
@@ -76,8 +75,6 @@ export default function KarttaPage() {
           </p>
         </section>
       </main>
-
-      <BottomNav active="kartta" />
     </div>
   );
 }
