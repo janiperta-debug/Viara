@@ -16,12 +16,29 @@ export const metadata: Metadata = {
   title: "Viara — The work speaks for itself.",
   description:
     "Viara helps organizations transform complex maintenance workflows into clear digital operations.",
+  applicationName: "Viara",
+  appleWebApp: {
+    capable: true,
+    title: "Viara",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-icon-180.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover" as const,
+  themeColor: "#dfe3e7",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
