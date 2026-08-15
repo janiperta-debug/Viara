@@ -1,6 +1,5 @@
 import { LogOut, ChevronRight, Globe, Bell } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
-import { BottomNav } from "@/components/dashboard/bottom-nav";
 import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
 import { kirjauduUlos } from "@/app/actions/kirjaudu-ulos";
 
@@ -9,7 +8,7 @@ export default async function ProfiiliPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <TopBar notifications={3} />
+      <TopBar notifications={3} active="profiili" />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pb-6 pt-2 md:max-w-2xl md:gap-7 md:px-8 md:pt-4 lg:max-w-3xl lg:px-10 lg:pt-6">
         {/* Otsikko */}
@@ -132,8 +131,6 @@ export default async function ProfiiliPage() {
           </button>
         </form>
       </main>
-
-      <BottomNav active="profiili" />
     </div>
   );
 }
