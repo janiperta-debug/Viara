@@ -21,7 +21,7 @@ const ITEMS: {
     badge: 3,
     href: "/havainnot",
   },
-  { key: "profiili", label: "Profiili", Icon: User },
+  { key: "profiili", label: "Profiili", Icon: User, href: "/profiili" },
 ];
 
 export function BottomNav({ active = "tyo" }: { active?: NavKey }) {
