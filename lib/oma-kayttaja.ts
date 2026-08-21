@@ -83,3 +83,56 @@ export async function haeOmaKayttaja(): Promise<ProfiiliTiedot> {
     return MOCK;
   }
 }
+
+export async function haeOmaKayttajaRooli(): Promise<string | null> {
+  const tulos = await haeOmaKayttajaRooliTiukasti();
+  return tulos.tila === "ok" ? tulos.rooli : null;
+}
+
+type OmaKayttajaRooliTulos =
+  | { tila: "ok"; rooli: string }
+  | { tila: "unauthenticated" }
+  | { tila: "role_lookup_failed" };
+
+export async function haeOmaKayttajaRooliTiukasti(): Promise<OmaKayttajaRooliTulos> {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      if (userError.status === 401 || userError.name === "AuthSessionMissingError") {
+        return { tila: "unauthenticated" };
+      }
+      return { tila: "role_lookup_failed" };
+    }
+
+    if (!user) {
+      return { tila: "unauthenticated" };
+    }
+
+    const { data: rawKayttaja, error: kayttajaError } = await supabase
+      .rpc("fn_oma_kayttaja")
+      .maybeSingle();
+
+    if (kayttajaError) {
+      return { tila: "role_lookup_failed" };
+    }
+
+    if (!rawKayttaja || typeof rawKayttaja !== "object") {
+      return { tila: "role_lookup_failed" };
+    }
+
+    const kayttaja = rawKayttaja as Record<string, unknown>;
+    if (typeof kayttaja.rooli !== "string" || !kayttaja.rooli.trim()) {
+      return { tila: "role_lookup_failed" };
+    }
+
+    return { tila: "ok", rooli: kayttaja.rooli };
+  } catch {
+    return { tila: "role_lookup_failed" };
+  }
+}

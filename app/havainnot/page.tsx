@@ -1,7 +1,10 @@
 import { TopBar } from "@/components/dashboard/top-bar";
 import { HavainnotLista } from "@/components/havainnot/havainnot-lista";
+import { vaadiRooli } from "@/lib/reitti-suojaus";
 
-export default function HavainnotPage() {
+export default async function HavainnotPage() {
+  await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <TopBar notifications={3} active="havainnot" />

@@ -3,8 +3,27 @@ import Link from "next/link";
 import { Map, ChevronRight, AlertTriangle } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { EquipmentPanel } from "@/components/dashboard/equipment-panel";
+import { vaadiRooli } from "@/lib/reitti-suojaus";
+import { haeNykyinenTyoTila } from "@/lib/tyo-tila";
 
-export default function TyoPage() {
+export default async function TyoPage() {
+  await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
+  const tyoTila = await haeNykyinenTyoTila();
+
+  const tyoStatus =
+    tyoTila.tyoKaynnissa === true
+      ? "Työ käynnissä"
+      : tyoTila.tyoKaynnissa === false
+        ? "Työ ei käynnissä"
+        : "Työn tila ei tiedossa";
+
+  const statusVari =
+    tyoTila.tyoKaynnissa === true
+      ? "bg-green-600"
+      : tyoTila.tyoKaynnissa === false
+        ? "bg-destructive"
+        : "bg-muted";
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <TopBar notifications={3} />
@@ -17,15 +36,19 @@ export default function TyoPage() {
             <div className="min-w-0">
               <p className="text-lg text-muted">Hyvää huomenta,</p>
               <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-                Ville
+                {tyoTila.kayttajaNimi}
               </h1>
               <div className="mt-3 flex items-center gap-2">
                 <span className="relative flex h-2.5 w-2.5" aria-hidden>
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-600" />
+                  {tyoTila.tyoKaynnissa === true && (
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-60" />
+                  )}
+                  <span
+                    className={`relative inline-flex h-2.5 w-2.5 rounded-full ${statusVari}`}
+                  />
                 </span>
                 <p className="text-sm font-medium text-foreground">
-                  Työ käynnissä
+                  {tyoStatus}
                 </p>
               </div>
             </div>
@@ -57,7 +80,7 @@ export default function TyoPage() {
         {/* Oikea palsta: työvälineet + poikkeamailmoitus */}
         <div className="flex flex-col gap-6 md:gap-7 lg:gap-8">
           {/* Aktiiviset työvälineet */}
-          <EquipmentPanel />
+          <EquipmentPanel initialState={tyoTila.tyovalineet} />
 
           {/* Ilmoita poikkeamasta */}
           <button

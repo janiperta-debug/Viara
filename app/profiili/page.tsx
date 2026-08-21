@@ -2,8 +2,11 @@ import { LogOut, ChevronRight, Globe, Bell } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
 import { kirjauduUlos } from "@/app/actions/kirjaudu-ulos";
+import { vaadiRooli } from "@/lib/reitti-suojaus";
 
 export default async function ProfiiliPage() {
+  await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
+
   const kayttaja = await haeOmaKayttaja();
 
   return (
