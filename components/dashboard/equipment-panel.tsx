@@ -16,13 +16,19 @@ const TYOVALINEET: Tyovaline[] = [
   { id: "hiekoitin", nimi: "Hiekoitin", Icon: Snowflake },
 ];
 
-function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
-  const [aktiivinen, setAktiivinen] = useState(true);
+function ToggleCard({
+  tyovaline,
+  alkuTila,
+}: {
+  tyovaline: Tyovaline;
+  alkuTila: boolean | null;
+}) {
+  const [aktiivinen, setAktiivinen] = useState<boolean | null>(alkuTila);
   const [, startTransition] = useTransition();
   const { Icon, nimi, id } = tyovaline;
 
   function toggle() {
-    const seuraava = !aktiivinen;
+    const seuraava = aktiivinen !== true;
     setAktiivinen(seuraava);
 
     // Yritetään kirjata tapahtuma taustalla; UI ei jää odottamaan.
@@ -48,7 +54,11 @@ function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
             {nimi}
           </p>
           <p className="text-sm text-muted">
-            {aktiivinen ? "Käytössä" : "Pois käytöstä"}
+            {aktiivinen === true
+              ? "Käytössä"
+              : aktiivinen === false
+                ? "Pois käytöstä"
+                : "Tila ei tiedossa"}
           </p>
         </div>
       </div>
@@ -56,25 +66,31 @@ function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
       <button
         type="button"
         role="switch"
-        aria-checked={aktiivinen}
-        aria-label={`${nimi}: ${aktiivinen ? "käytössä" : "pois käytöstä"}`}
+        aria-checked={aktiivinen === true}
+        aria-label={`${nimi}: ${
+          aktiivinen === true
+            ? "käytössä"
+            : aktiivinen === false
+              ? "pois käytöstä"
+              : "tila ei tiedossa"
+        }`}
         onClick={toggle}
         className={`relative flex h-10 w-full items-center rounded-full px-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-          aktiivinen ? "btn-primary" : "bg-border"
+          aktiivinen === true ? "btn-primary" : "bg-border"
         }`}
       >
         <span
           className={`text-xs font-bold tracking-wide ${
-            aktiivinen
+            aktiivinen === true
               ? "ml-3 text-primary-foreground"
               : "ml-auto mr-3 text-muted"
           }`}
         >
-          {aktiivinen ? "ON" : "OFF"}
+          {aktiivinen === true ? "ON" : aktiivinen === false ? "OFF" : "?"}
         </span>
         <span
           className={`absolute top-1 h-8 w-8 rounded-full bg-white shadow-md transition-all duration-200 ${
-            aktiivinen ? "right-1" : "left-1"
+            aktiivinen === true ? "right-1" : "left-1"
           }`}
         />
       </button>
@@ -82,7 +98,14 @@ function ToggleCard({ tyovaline }: { tyovaline: Tyovaline }) {
   );
 }
 
-export function EquipmentPanel() {
+export function EquipmentPanel({
+  initialState,
+}: {
+  initialState: {
+    aura: boolean | null;
+    hiekoitin: boolean | null;
+  };
+}) {
   return (
     <section aria-labelledby="tyovalineet-otsikko">
       <div className="mb-3 flex items-center justify-between px-1">
@@ -102,7 +125,15 @@ export function EquipmentPanel() {
       </div>
       <div className="grid grid-cols-2 gap-3">
         {TYOVALINEET.map((t) => (
-          <ToggleCard key={t.id} tyovaline={t} />
+          <ToggleCard
+            key={t.id}
+            tyovaline={t}
+            alkuTila={
+              t.id === "aura"
+                ? initialState.aura
+                : initialState.hiekoitin
+            }
+          />
         ))}
       </div>
     </section>
