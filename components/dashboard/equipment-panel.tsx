@@ -131,7 +131,7 @@ export function EquipmentPanel({
       <div className="grid grid-cols-2 gap-3">
         {TYOVALINEET.map((t) => (
           <ToggleCard
-            key={t.uuid}
+            key={t.slug}
             tyovaline={t}
             alkuTila={initialState[t.slug] ?? null}
           />
