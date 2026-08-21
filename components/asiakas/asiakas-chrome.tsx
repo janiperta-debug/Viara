@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, Building2, TriangleAlert, User, Bell } from "lucide-react";
 import { ASIAKAS, YHTEENVETO } from "@/lib/asiakas-mock";
+import { type ViaraRooli, voikoVaihtaaNakymaa } from "@/lib/nakymat";
 
 const ITEMS = [
   { href: "/asiakas", label: "Yleiskuva", Icon: LayoutGrid },
@@ -19,9 +20,16 @@ function onAktiivinen(pathname: string, href: string) {
     : pathname.startsWith(href);
 }
 
-export function AsiakasChrome({ children }: { children: React.ReactNode }) {
+export function AsiakasChrome({
+  children,
+  rooli,
+}: {
+  children: React.ReactNode;
+  rooli: ViaraRooli;
+}) {
   const pathname = usePathname();
   const avoimet = YHTEENVETO.avoimetHavainnot;
+  const naytaNakymaVaihto = voikoVaihtaaNakymaa(rooli);
 
   return (
     <div className="flex min-h-screen flex-1 flex-col">
@@ -77,6 +85,14 @@ export function AsiakasChrome({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-2.5">
+            {naytaNakymaVaihto && (
+              <Link
+                href="/valitse"
+                className="inline-flex rounded-full border border-border/70 px-2.5 py-2 text-xs font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:px-3 md:text-sm"
+              >
+                Vaihda näkymää
+              </Link>
+            )}
             <button
               type="button"
               aria-label={`Ilmoitukset, ${avoimet} avointa`}

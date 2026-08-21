@@ -8,7 +8,7 @@ import { vaadiRooli } from "@/lib/reitti-suojaus";
 import { haeNykyinenTyoTila } from "@/lib/tyo-tila";
 
 export default async function TyoPage() {
-  await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
+  const rooli = await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
   const tyoTila = await haeNykyinenTyoTila();
 
   const tyoStatus =
@@ -27,7 +27,7 @@ export default async function TyoPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <TopBar notifications={3} />
+      <TopBar notifications={3} rooli={rooli} />
       <SijaintiTarkkailija />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pb-6 pt-2 md:max-w-2xl md:gap-7 md:px-8 md:pt-4 lg:max-w-5xl lg:grid lg:grid-cols-[1.4fr_1fr] lg:items-start lg:gap-8 lg:px-10 lg:pt-6">

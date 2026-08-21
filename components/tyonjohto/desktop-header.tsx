@@ -8,6 +8,7 @@ import {
   Bell,
 } from "lucide-react";
 import { YLAPALKKI } from "@/lib/tyonjohto-mock";
+import { type ViaraRooli, voikoVaihtaaNakymaa } from "@/lib/nakymat";
 
 function StatChip({
   Icon,
@@ -36,9 +37,10 @@ function StatChip({
   );
 }
 
-export function DesktopHeader() {
+export function DesktopHeader({ rooli }: { rooli: ViaraRooli }) {
   const { valmis, tyonAlla, avoimetHavainnot, saa, paiva, kello, ilmoitukset } =
     YLAPALKKI;
+  const naytaNakymaVaihto = voikoVaihtaaNakymaa(rooli);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-card/85 backdrop-blur-md">
@@ -82,6 +84,14 @@ export function DesktopHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-5">
+          {naytaNakymaVaihto && (
+            <Link
+              href="/valitse"
+              className="rounded-full border border-border/70 px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              Vaihda näkymää
+            </Link>
+          )}
           {/* Sää */}
           <div className="hidden items-center gap-2.5 lg:flex">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10 text-accent">
