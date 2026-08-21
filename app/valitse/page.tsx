@@ -1,7 +1,14 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
 import { onViaraRooli, sallitutNakymat } from "@/lib/nakymat";
+import { asetaNakyma } from "@/app/actions/aseta-nakyma";
+import type { AktiivinenNakyma } from "@/lib/nakyma-cookie";
+
+const HREF_NAKYMA: Record<string, AktiivinenNakyma> = {
+  "/tyo": "tyo",
+  "/tyonjohto": "tyonjohto",
+  "/asiakas": "asiakas",
+};
 
 export default async function ValitsePage() {
   const kayttaja = await haeOmaKayttaja();
@@ -14,6 +21,7 @@ export default async function ValitsePage() {
   const nakymat = sallitutNakymat(rooli);
 
   // kuljettaja ja asiakas ohjataan suoraan omaan näkymäänsä
+  // (kirjaudu-action asettaa heille evästeen suoraan)
   if (rooli === "kuljettaja") redirect("/tyo");
   if (rooli === "asiakas") redirect("/asiakas");
 
@@ -29,15 +37,20 @@ export default async function ValitsePage() {
           {kayttaja.rooliLabel}
         </p>
         <div className="flex flex-col gap-4">
-          {nakymat.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="btn-primary flex h-14 items-center justify-center rounded-full text-base font-semibold text-primary-foreground"
-            >
-              {label}
-            </Link>
-          ))}
+          {nakymat.map(({ href, label }) => {
+            const nakyma = HREF_NAKYMA[href];
+            if (!nakyma) return null;
+            return (
+              <form key={href} action={asetaNakyma.bind(null, nakyma)}>
+                <button
+                  type="submit"
+                  className="btn-primary flex h-14 w-full items-center justify-center rounded-full text-base font-semibold text-primary-foreground"
+                >
+                  {label}
+                </button>
+              </form>
+            );
+          })}
         </div>
       </div>
     </main>
