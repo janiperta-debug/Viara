@@ -21,7 +21,7 @@ export default async function ValitsePage() {
     nakymat.push({ href: "/asiakas", label: "Asiakas" });
   }
 
-  if (nakymat.length === 0) redirect("/tyo");
+  if (nakymat.length === 0) redirect("/kirjaudu");
 
   return (
     <main className="flex min-h-screen flex-1 items-center justify-center px-6 py-16">
