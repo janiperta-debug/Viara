@@ -1,5 +1,5 @@
 import { forbidden, redirect } from "next/navigation";
-import { haeOmaKayttajaRooli } from "@/lib/oma-kayttaja";
+import { haeOmaKayttajaRooliTiukasti } from "@/lib/oma-kayttaja";
 
 const ROOLIT = ["kuljettaja", "tyonjohto", "asiakas", "admin"] as const;
 type Rooli = (typeof ROOLIT)[number];
@@ -9,11 +9,17 @@ function onRooli(arvo: string): arvo is Rooli {
 }
 
 export async function vaadiRooli(sallitutRoolit: Rooli[]) {
-  const rooli = await haeOmaKayttajaRooli();
+  const tulos = await haeOmaKayttajaRooliTiukasti();
 
-  if (!rooli) {
+  if (tulos.tila === "unauthenticated") {
     redirect("/kirjaudu");
   }
+
+  if (tulos.tila !== "ok") {
+    forbidden();
+  }
+
+  const rooli = tulos.rooli;
 
   if (!onRooli(rooli) || !sallitutRoolit.includes(rooli)) {
     forbidden();

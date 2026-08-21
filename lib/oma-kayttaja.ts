@@ -85,30 +85,51 @@ export async function haeOmaKayttaja(): Promise<ProfiiliTiedot> {
 }
 
 export async function haeOmaKayttajaRooli(): Promise<string | null> {
+  const tulos = await haeOmaKayttajaRooliTiukasti();
+  return tulos.tila === "ok" ? tulos.rooli : null;
+}
+
+type OmaKayttajaRooliTulos =
+  | { tila: "ok"; rooli: string }
+  | { tila: "unauthenticated" }
+  | { tila: "role_lookup_failed" };
+
+export async function haeOmaKayttajaRooliTiukasti(): Promise<OmaKayttajaRooliTulos> {
   try {
     const supabase = await createSupabaseServerClient();
 
     const {
       data: { user },
+      error: userError,
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return null;
+    if (userError) {
+      return { tila: "role_lookup_failed" };
     }
 
-    const { data: rawKayttaja } = await supabase
+    if (!user) {
+      return { tila: "unauthenticated" };
+    }
+
+    const { data: rawKayttaja, error: kayttajaError } = await supabase
       .rpc("fn_oma_kayttaja")
       .maybeSingle();
 
+    if (kayttajaError) {
+      return { tila: "role_lookup_failed" };
+    }
+
     if (!rawKayttaja || typeof rawKayttaja !== "object") {
-      return null;
+      return { tila: "role_lookup_failed" };
     }
 
     const kayttaja = rawKayttaja as Record<string, unknown>;
-    return typeof kayttaja.rooli === "string" && kayttaja.rooli.trim()
-      ? kayttaja.rooli
-      : null;
+    if (typeof kayttaja.rooli !== "string" || !kayttaja.rooli.trim()) {
+      return { tila: "role_lookup_failed" };
+    }
+
+    return { tila: "ok", rooli: kayttaja.rooli };
   } catch {
-    return null;
+    return { tila: "role_lookup_failed" };
   }
 }
