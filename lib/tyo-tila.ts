@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { TYOVALINETYYPPI_ID } from "@/lib/tyovalinetyypit";
 
 type ViaraKayttaja = {
   id: string;
@@ -60,7 +61,7 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
         .from("tapahtumat")
         .select("tyyppi, tyovalinetyyppi_id, aikaleima")
         .eq("kayttaja_id", kayttaja.id)
-        .eq("tyovalinetyyppi_id", "aura")
+        .eq("tyovalinetyyppi_id", TYOVALINETYYPPI_ID.aura)
         .in("tyyppi", ["tyovaline_on", "tyovaline_off"])
         .order("aikaleima", { ascending: false })
         .limit(1)
@@ -69,7 +70,7 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
         .from("tapahtumat")
         .select("tyyppi, tyovalinetyyppi_id, aikaleima")
         .eq("kayttaja_id", kayttaja.id)
-        .eq("tyovalinetyyppi_id", "hiekoitin")
+        .eq("tyovalinetyyppi_id", TYOVALINETYYPPI_ID.hiekoitin)
         .in("tyyppi", ["tyovaline_on", "tyovaline_off"])
         .order("aikaleima", { ascending: false })
         .limit(1)

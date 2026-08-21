@@ -3,17 +3,20 @@
 import { useState, useTransition } from "react";
 import { Truck, Snowflake } from "lucide-react";
 import { asetaTyovaline } from "@/app/actions/aseta-tyovaline";
+import { TYOVALINETYYPPI_ID } from "@/lib/tyovalinetyypit";
+
+type TyovalineSlug = "aura" | "hiekoitin";
 
 type Tyovaline = {
-  id: string;
+  slug: TyovalineSlug;
+  uuid: string;
   nimi: string;
   Icon: typeof Truck;
 };
 
-// Työvälinetyypit tulevat myöhemmin tietokannasta; toistaiseksi paikalliset ID:t.
 const TYOVALINEET: Tyovaline[] = [
-  { id: "aura", nimi: "Aura", Icon: Truck },
-  { id: "hiekoitin", nimi: "Hiekoitin", Icon: Snowflake },
+  { slug: "aura", uuid: TYOVALINETYYPPI_ID.aura, nimi: "Aura", Icon: Truck },
+  { slug: "hiekoitin", uuid: TYOVALINETYYPPI_ID.hiekoitin, nimi: "Hiekoitin", Icon: Snowflake },
 ];
 
 type TyovalineTilat = {
@@ -30,7 +33,7 @@ function ToggleCard({
 }) {
   const [aktiivinen, setAktiivinen] = useState<boolean | null>(alkuTila);
   const [, startTransition] = useTransition();
-  const { Icon, nimi, id } = tyovaline;
+  const { Icon, nimi, uuid } = tyovaline;
 
   function toggle() {
     const seuraava = aktiivinen !== true;
@@ -39,7 +42,7 @@ function ToggleCard({
     // Yritetään kirjata tapahtuma taustalla; UI ei jää odottamaan.
     startTransition(async () => {
       const tulos = await asetaTyovaline({
-        tyovalinetyyppiId: id,
+        tyovalinetyyppiId: uuid,
         aktiivinen: seuraava,
       });
       if (!tulos.success) {
@@ -128,12 +131,13 @@ export function EquipmentPanel({
       <div className="grid grid-cols-2 gap-3">
         {TYOVALINEET.map((t) => (
           <ToggleCard
-            key={t.id}
+            key={t.uuid}
             tyovaline={t}
-            alkuTila={initialState[t.id as keyof TyovalineTilat] ?? null}
+            alkuTila={initialState[t.slug] ?? null}
           />
         ))}
       </div>
     </section>
   );
 }
+
