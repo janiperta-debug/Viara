@@ -7,7 +7,7 @@ export default async function AsiakasLayout({
 }: {
   children: ReactNode;
 }) {
-  await vaadiRooli(["asiakas", "admin"]);
+  const rooli = await vaadiRooli(["asiakas", "tyonjohto", "admin"]);
 
-  return <AsiakasChrome>{children}</AsiakasChrome>;
+  return <AsiakasChrome rooli={rooli}>{children}</AsiakasChrome>;
 }

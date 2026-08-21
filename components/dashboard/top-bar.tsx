@@ -1,16 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { type ViaraRooli, voikoVaihtaaNakymaa } from "@/lib/nakymat";
 
 type Kohde = "havainnot" | "profiili";
 
 export function TopBar({
   notifications = 3,
   active,
+  rooli,
 }: {
   notifications?: number;
   active?: Kohde;
+  rooli: ViaraRooli;
 }) {
+  const naytaNakymaVaihto = voikoVaihtaaNakymaa(rooli);
+
   return (
     <header className="mx-auto flex w-full max-w-md items-center justify-between px-5 pt-4 pb-2 md:max-w-2xl md:px-8 md:pt-6 lg:max-w-5xl lg:px-10">
       <Link
@@ -28,6 +33,14 @@ export function TopBar({
         />
       </Link>
       <div className="flex items-center gap-3">
+        {naytaNakymaVaihto && (
+          <Link
+            href="/valitse"
+            className="inline-flex rounded-full border border-border/70 px-2.5 py-2 text-xs font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:px-3 md:text-sm"
+          >
+            Vaihda näkymää
+          </Link>
+        )}
         <Link
           href="/havainnot"
           aria-label={`Havainnot, ${notifications} uutta`}
