@@ -1,4 +1,4 @@
-import { forbidden, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { haeOmaKayttajaRooliTiukasti } from "@/lib/oma-kayttaja";
 
 const ROOLIT = ["kuljettaja", "tyonjohto", "asiakas", "admin"] as const;
@@ -16,13 +16,13 @@ export async function vaadiRooli(sallitutRoolit: Rooli[]) {
   }
 
   if (tulos.tila !== "ok") {
-    forbidden();
+    redirect("/valitse");
   }
 
   const rooli = tulos.rooli;
 
   if (!onRooli(rooli) || !sallitutRoolit.includes(rooli)) {
-    forbidden();
+    redirect("/valitse");
   }
 
   return rooli;
