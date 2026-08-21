@@ -33,7 +33,11 @@ export function SijaintiTarkkailija() {
             lng: position.coords.longitude,
           });
 
-          if (tulos.success && tulos.muutos === true) {
+          if (
+            tulos.success &&
+            "muutos" in tulos &&
+            tulos.muutos === true
+          ) {
             refreshRef.current();
           }
         } catch {}
