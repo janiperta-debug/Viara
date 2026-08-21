@@ -104,8 +104,7 @@ export async function haeOmaKayttajaRooliTiukasti(): Promise<OmaKayttajaRooliTul
     } = await supabase.auth.getUser();
 
     if (userError) {
-      const viesti = userError.message.toLowerCase();
-      if (viesti.includes("session")) {
+      if (userError.status === 401 || userError.name === "AuthSessionMissingError") {
         return { tila: "unauthenticated" };
       }
       return { tila: "role_lookup_failed" };
