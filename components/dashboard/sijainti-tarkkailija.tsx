@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { paivitaSijainti } from "@/app/actions/paivita-sijainti";
 
 export function SijaintiTarkkailija() {
   const router = useRouter();
+  const refreshRef = useRef<() => void>(() => {});
+
+  useEffect(() => {
+    refreshRef.current = () => {
+      router.refresh();
+    };
+  }, [router]);
 
   useEffect(() => {
     const geolocation = navigator.geolocation;
@@ -27,7 +34,7 @@ export function SijaintiTarkkailija() {
           });
 
           if (tulos.success && tulos.muutos === true) {
-            router.refresh();
+            refreshRef.current();
           }
         } catch {}
       },
@@ -42,7 +49,7 @@ export function SijaintiTarkkailija() {
     return () => {
       geolocation.clearWatch(watchId);
     };
-  }, [router]);
+  }, []);
 
   return null;
 }
