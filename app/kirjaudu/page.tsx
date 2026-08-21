@@ -27,9 +27,19 @@ export default function KirjauduPage() {
 
   useEffect(() => {
     if (tulos.success) {
-      router.push("/tyo");
+      switch (tulos.rooli) {
+        case "asiakas":
+          router.push("/asiakas");
+          break;
+        case "tyonjohto":
+        case "admin":
+          router.push("/valitse");
+          break;
+        default:
+          router.push("/tyo");
+      }
     }
-  }, [tulos.success, router]);
+  }, [tulos.success, tulos.rooli, router]);
 
   return (
     <main className="flex min-h-screen flex-1 items-center justify-center px-6 py-16">
