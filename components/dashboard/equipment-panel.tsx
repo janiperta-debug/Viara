@@ -16,6 +16,11 @@ const TYOVALINEET: Tyovaline[] = [
   { id: "hiekoitin", nimi: "Hiekoitin", Icon: Snowflake },
 ];
 
+type TyovalineTilat = {
+  aura: boolean | null;
+  hiekoitin: boolean | null;
+};
+
 function ToggleCard({
   tyovaline,
   alkuTila,
@@ -101,10 +106,7 @@ function ToggleCard({
 export function EquipmentPanel({
   initialState,
 }: {
-  initialState: {
-    aura: boolean | null;
-    hiekoitin: boolean | null;
-  };
+  initialState: TyovalineTilat;
 }) {
   return (
     <section aria-labelledby="tyovalineet-otsikko">
@@ -128,11 +130,7 @@ export function EquipmentPanel({
           <ToggleCard
             key={t.id}
             tyovaline={t}
-            alkuTila={
-              t.id === "aura"
-                ? initialState.aura
-                : initialState.hiekoitin
-            }
+            alkuTila={initialState[t.id as keyof TyovalineTilat] ?? null}
           />
         ))}
       </div>

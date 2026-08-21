@@ -1,8 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
 
 type ViaraKayttaja = {
   id: string;
+  nimi?: string;
 };
 
 type TapahtumaRivi = {
@@ -45,20 +45,35 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
 
   const kayttaja = rawKayttaja as ViaraKayttaja | null;
 
-  if (kayttajaError || !kayttaja) {
+  if (
+    kayttajaError ||
+    !kayttaja ||
+    typeof kayttaja.id !== "string" ||
+    !kayttaja.id
+  ) {
     throw new Error("Viara-käyttäjää ei löytynyt.");
   }
 
-  const [profiili, tyovalineTapahtumat, hoitoalueTapahtuma, tyoTapahtuma] =
+  const [auraTapahtuma, hiekoitinTapahtuma, hoitoalueTapahtuma, tyoTapahtuma] =
     await Promise.all([
-      haeOmaKayttaja(),
       supabase
         .from("tapahtumat")
         .select("tyyppi, tyovalinetyyppi_id, aikaleima")
         .eq("kayttaja_id", kayttaja.id)
+        .eq("tyovalinetyyppi_id", "aura")
         .in("tyyppi", ["tyovaline_on", "tyovaline_off"])
-        .in("tyovalinetyyppi_id", ["aura", "hiekoitin"])
-        .order("aikaleima", { ascending: false }),
+        .order("aikaleima", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("tapahtumat")
+        .select("tyyppi, tyovalinetyyppi_id, aikaleima")
+        .eq("kayttaja_id", kayttaja.id)
+        .eq("tyovalinetyyppi_id", "hiekoitin")
+        .in("tyyppi", ["tyovaline_on", "tyovaline_off"])
+        .order("aikaleima", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
       supabase
         .from("tapahtumat")
         .select("tyyppi, hoitoalue_id, aikaleima")
@@ -77,8 +92,11 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
         .maybeSingle(),
     ]);
 
-  if (tyovalineTapahtumat.error) {
-    throw new Error(tyovalineTapahtumat.error.message);
+  if (auraTapahtuma.error) {
+    throw new Error(auraTapahtuma.error.message);
+  }
+  if (hiekoitinTapahtuma.error) {
+    throw new Error(hiekoitinTapahtuma.error.message);
   }
   if (hoitoalueTapahtuma.error) {
     throw new Error(hoitoalueTapahtuma.error.message);
@@ -87,14 +105,14 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
     throw new Error(tyoTapahtuma.error.message);
   }
 
-  const tyovalineRows = (tyovalineTapahtumat.data ?? []) as Pick<
+  const viimeisinAura = auraTapahtuma.data as Pick<
     TapahtumaRivi,
     "tyyppi" | "tyovalinetyyppi_id" | "aikaleima"
-  >[];
-  const viimeisinAura = tyovalineRows.find((r) => r.tyovalinetyyppi_id === "aura");
-  const viimeisinHiekoitin = tyovalineRows.find(
-    (r) => r.tyovalinetyyppi_id === "hiekoitin"
-  );
+  > | null;
+  const viimeisinHiekoitin = hiekoitinTapahtuma.data as Pick<
+    TapahtumaRivi,
+    "tyyppi" | "tyovalinetyyppi_id" | "aikaleima"
+  > | null;
 
   const aura = viimeisinAura
     ? viimeisinAura.tyyppi === "tyovaline_on"
@@ -111,6 +129,10 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
         : null;
 
   let nykyinenHoitoalue: Hoitoalue | null = null;
+  const nimi =
+    typeof kayttaja.nimi === "string" && kayttaja.nimi.trim()
+      ? kayttaja.nimi
+      : (user.email?.split("@")[0] ?? "Käyttäjä");
 
   if (
     hoitoalueTapahtuma.data?.tyyppi === "hoitoalue_saapui" &&
@@ -132,7 +154,7 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
   }
 
   return {
-    kayttajaNimi: profiili.nimi,
+    kayttajaNimi: nimi,
     tyoKaynnissa,
     tyovalineet: {
       aura,

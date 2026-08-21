@@ -28,10 +28,7 @@ export default async function TyoPage() {
     <div className="flex min-h-screen w-full flex-col">
       <TopBar notifications={3} />
 
-      <main
-        className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pb-6 pt-2 md:max-w-2xl md:gap-7 md:px-8 md:pt-4 lg:max-w-5xl lg:grid lg:grid-cols-[1.4fr_1fr] lg:items-start lg:gap-8 lg:px-10 lg:pt-6"
-        data-hoitoalue-id={tyoTila.nykyinenHoitoalue?.id ?? ""}
-      >
+      <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pb-6 pt-2 md:max-w-2xl md:gap-7 md:px-8 md:pt-4 lg:max-w-5xl lg:grid lg:grid-cols-[1.4fr_1fr] lg:items-start lg:gap-8 lg:px-10 lg:pt-6">
         {/* Vasen palsta: tervehdys, seuraava kohde, kartta */}
         <div className="flex flex-col gap-6 md:gap-7 lg:gap-8">
           {/* Tervehdys + työvuoron tila */}
