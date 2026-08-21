@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Map, ChevronRight, AlertTriangle } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { EquipmentPanel } from "@/components/dashboard/equipment-panel";
+import { SijaintiTarkkailija } from "@/components/dashboard/sijainti-tarkkailija";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
 import { haeNykyinenTyoTila } from "@/lib/tyo-tila";
 
@@ -27,6 +28,7 @@ export default async function TyoPage() {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <TopBar notifications={3} />
+      <SijaintiTarkkailija />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-6 px-5 pb-6 pt-2 md:max-w-2xl md:gap-7 md:px-8 md:pt-4 lg:max-w-5xl lg:grid lg:grid-cols-[1.4fr_1fr] lg:items-start lg:gap-8 lg:px-10 lg:pt-6">
         {/* Vasen palsta: tervehdys, seuraava kohde, kartta */}

@@ -17,6 +17,22 @@ export async function paivitaSijainti({
   lat,
   lng,
 }: PaivitaSijaintiInput) {
+  const kelvollinenLat =
+    Number.isFinite(lat) &&
+    lat >= -90 &&
+    lat <= 90;
+  const kelvollinenLng =
+    Number.isFinite(lng) &&
+    lng >= -180 &&
+    lng <= 180;
+
+  if (!kelvollinenLat || !kelvollinenLng) {
+    return {
+      success: false,
+      error: "Virheelliset koordinaatit.",
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
 
   const {
