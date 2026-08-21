@@ -1,6 +1,7 @@
 import { TopBar } from "@/components/dashboard/top-bar";
 import { TilanneVisualisointi } from "@/components/kartta/tilanne-visualisointi";
 import { URAKAN_TILANNE } from "@/lib/urakka-mock";
+import { vaadiRooli } from "@/lib/reitti-suojaus";
 
 const SELITE = [
   { vari: "#16a34a", label: "Valmis", maara: URAKAN_TILANNE.valmis },
@@ -8,7 +9,9 @@ const SELITE = [
   { vari: "#dc2626", label: "Aloittamatta", maara: URAKAN_TILANNE.aloittamatta },
 ];
 
-export default function KarttaPage() {
+export default async function KarttaPage() {
+  await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
+
   const { valmisProsentti } = URAKAN_TILANNE;
 
   return (

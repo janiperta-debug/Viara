@@ -3,8 +3,11 @@ import Link from "next/link";
 import { Map, ChevronRight, AlertTriangle } from "lucide-react";
 import { TopBar } from "@/components/dashboard/top-bar";
 import { EquipmentPanel } from "@/components/dashboard/equipment-panel";
+import { vaadiRooli } from "@/lib/reitti-suojaus";
 
-export default function TyoPage() {
+export default async function TyoPage() {
+  await vaadiRooli(["kuljettaja", "tyonjohto", "admin"]);
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <TopBar notifications={3} />

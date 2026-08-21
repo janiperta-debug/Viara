@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
 import { DesktopHeader } from "@/components/tyonjohto/desktop-header";
 import { DesktopNav } from "@/components/tyonjohto/desktop-nav";
+import { vaadiRooli } from "@/lib/reitti-suojaus";
 
-export default function TyonjohtoLayout({
+export default async function TyonjohtoLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  await vaadiRooli(["tyonjohto", "admin"]);
+
   return (
     <div className="flex min-h-screen flex-1 flex-col">
       <DesktopHeader />

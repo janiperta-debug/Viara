@@ -83,3 +83,32 @@ export async function haeOmaKayttaja(): Promise<ProfiiliTiedot> {
     return MOCK;
   }
 }
+
+export async function haeOmaKayttajaRooli(): Promise<string | null> {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    const { data: rawKayttaja } = await supabase
+      .rpc("fn_oma_kayttaja")
+      .maybeSingle();
+
+    if (!rawKayttaja || typeof rawKayttaja !== "object") {
+      return null;
+    }
+
+    const kayttaja = rawKayttaja as Record<string, unknown>;
+    return typeof kayttaja.rooli === "string" && kayttaja.rooli.trim()
+      ? kayttaja.rooli
+      : null;
+  } catch {
+    return null;
+  }
+}
