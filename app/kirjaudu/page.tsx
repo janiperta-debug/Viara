@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { kirjaudu } from "@/app/actions/kirjaudu";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -18,6 +18,7 @@ const alkuTila: KirjautumisTulos = {
 
 export default function KirjauduPage() {
   const router = useRouter();
+  const navigoitu = useRef(false);
   const [tulos, formAction, pending] = useActionState(
     async (_previousState: KirjautumisTulos, formData: FormData) => {
       return kirjaudu(formData);
@@ -26,10 +27,21 @@ export default function KirjauduPage() {
   );
 
   useEffect(() => {
-    if (tulos.success) {
-      router.push("/tyo");
+    if (tulos.success && !navigoitu.current) {
+      navigoitu.current = true;
+      switch (tulos.rooli) {
+        case "asiakas":
+          router.push("/asiakas");
+          break;
+        case "tyonjohto":
+        case "admin":
+          router.push("/valitse");
+          break;
+        default:
+          router.push("/tyo");
+      }
     }
-  }, [tulos.success, router]);
+  }, [tulos.success, tulos.rooli, router]);
 
   return (
     <main className="flex min-h-screen flex-1 items-center justify-center px-6 py-16">
