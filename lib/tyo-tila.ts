@@ -54,7 +54,7 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
     throw new Error("Viara-käyttäjää ei löytynyt.");
   }
 
-  const [auraTapahtuma, hiekoitinTapahtuma, hoitoalueTapahtuma, tyoTapahtuma] =
+  const [auraTapahtuma, hiekoitinTapahtuma, hoitoalueTapahtuma] =
     await Promise.all([
       supabase
         .from("tapahtumat")
@@ -82,14 +82,6 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
         .order("aikaleima", { ascending: false })
         .limit(1)
         .maybeSingle(),
-      supabase
-        .from("tapahtumat")
-        .select("tyyppi, aikaleima")
-        .eq("kayttaja_id", kayttaja.id)
-        .in("tyyppi", ["tyo_aloitettu", "tyo_lopetettu"])
-        .order("aikaleima", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
     ]);
 
   if (auraTapahtuma.error) {
@@ -100,9 +92,6 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
   }
   if (hoitoalueTapahtuma.error) {
     throw new Error(hoitoalueTapahtuma.error.message);
-  }
-  if (tyoTapahtuma.error) {
-    throw new Error(tyoTapahtuma.error.message);
   }
 
   const viimeisinAura = auraTapahtuma.data as Pick<
@@ -122,9 +111,9 @@ export async function haeNykyinenTyoTila(): Promise<TyoTila> {
     : null;
 
   const tyoKaynnissa =
-    tyoTapahtuma.data?.tyyppi === "tyo_aloitettu"
+    hoitoalueTapahtuma.data?.tyyppi === "hoitoalue_saapui"
       ? true
-      : tyoTapahtuma.data?.tyyppi === "tyo_lopetettu"
+      : hoitoalueTapahtuma.data?.tyyppi === "hoitoalue_poistui"
         ? false
         : null;
 
