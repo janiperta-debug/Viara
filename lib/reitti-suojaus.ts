@@ -16,13 +16,13 @@ export async function vaadiRooli(sallitutRoolit: Rooli[]) {
   }
 
   if (tulos.tila !== "ok") {
-    redirect("/valitse");
+    redirect("/403");
   }
 
   const rooli = tulos.rooli;
 
   if (!onRooli(rooli) || !sallitutRoolit.includes(rooli)) {
-    redirect("/valitse");
+    redirect("/403");
   }
 
   return rooli;
