@@ -41,7 +41,9 @@ export function HoitoalueKartta({
   const LRef = useRef<typeof import("leaflet") | null>(null);
   // Ajantasainen valinta-callback ilman kartan uudelleeninitointia.
   const onValitseRef = useRef(onValitse);
-  onValitseRef.current = onValitse;
+  useEffect(() => {
+    onValitseRef.current = onValitse;
+  });
 
   // Kartan alustus (kerran).
   useEffect(() => {

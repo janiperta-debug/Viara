@@ -1,4 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { cookies } from "next/headers";
+import { tarkistaNakymaCookie, NAKYMA_COOKIE } from "@/lib/nakyma-cookie";
 
 type KirjaaTapahtumaInput = {
   tyyppi: string;
@@ -41,6 +43,18 @@ export async function kirjaaTapahtuma({
   lisatiedot,
   gps,
 }: KirjaaTapahtumaInput) {
+  // Tarkistetaan allekirjoitettu näkymäeväste ennen mitään tietokantaoperaatiota.
+  // Tapahtumat saa kirjata vain, kun aktiivinen näkymä on "tyo".
+  const cookieStore = await cookies();
+  const nakyma = tarkistaNakymaCookie(cookieStore.get(NAKYMA_COOKIE)?.value);
+  if (nakyma !== "tyo") {
+    return {
+      success: false,
+      error:
+        "Työskentelytapahtumia voi kirjata vain Työ-näkymässä (aktiivinen näkymä ei ole 'tyo').",
+    };
+  }
+
   const supabase = await createSupabaseServerClient();
 
   // Selvitetään kirjautunut käyttäjä Supabase Authista

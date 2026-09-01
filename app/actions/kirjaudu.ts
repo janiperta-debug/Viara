@@ -1,9 +1,21 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import {
+  allekirjoitaNakyma,
+  NAKYMA_COOKIE,
+  type AktiivinenNakyma,
+} from "@/lib/nakyma-cookie";
 
 type ViaraKayttaja = {
   rooli: string;
+};
+
+/** Roolit, joille näkymä määräytyy suoraan kirjautumisessa (ei /valitse-sivua). */
+const ROOLI_NAKYMA: Partial<Record<string, AktiivinenNakyma>> = {
+  kuljettaja: "tyo",
+  asiakas: "asiakas",
 };
 
 export async function kirjaudu(formData: FormData) {
@@ -50,6 +62,26 @@ export async function kirjaudu(formData: FormData) {
       success: false,
       error: "Käyttäjän Viara-tietoja ei löytynyt.",
     };
+  }
+
+  // Asetetaan allekirjoitettu näkymäeväste roolille, joka menee suoraan
+  // näkymään ilman /valitse-sivua (kuljettaja → tyo, asiakas → asiakas).
+  // tyonjohto ja admin valitsevat näkymän itse /valitse-sivulla.
+  const suoraNakyma = ROOLI_NAKYMA[kayttaja.rooli];
+  if (suoraNakyma) {
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set(NAKYMA_COOKIE, allekirjoitaNakyma(suoraNakyma), {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      });
+    } catch {
+      // VIARA_NAKYMA_SECRET puuttuu kehitysympäristössä; ei estetä kirjautumista.
+      console.error(
+        "Näkymäevästeen asetus epäonnistui – tarkista VIARA_NAKYMA_SECRET."
+      );
+    }
   }
 
   return {
