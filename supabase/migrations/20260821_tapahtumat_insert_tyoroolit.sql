@@ -24,14 +24,17 @@
 DROP POLICY IF EXISTS tapahtumat_insert_kuljettaja ON tapahtumat;
 
 -- Luodaan uusi policy, joka kattaa kaikki työskentelyroolit
+-- fn_oma_kayttaja() kutsutaan vain kerran lateraalikyselyn avulla,
+-- jottei funktio suoriteta kahdesti jokaista tarkistettavaa riviä kohden.
 CREATE POLICY tapahtumat_insert_tyoroolit
   ON tapahtumat
   FOR INSERT
   TO authenticated
   WITH CHECK (
-    -- Kirjautuneen käyttäjän identiteettitarkistus
-    kayttaja_id = (SELECT id FROM fn_oma_kayttaja())
-    AND
-    -- Työskentelyroolit: kuljettaja, tyonjohto, admin
-    (SELECT rooli FROM fn_oma_kayttaja()) IN ('kuljettaja', 'tyonjohto', 'admin')
+    EXISTS (
+      SELECT 1
+      FROM fn_oma_kayttaja() AS k
+      WHERE k.id = kayttaja_id
+        AND k.rooli IN ('kuljettaja', 'tyonjohto', 'admin')
+    )
   );
