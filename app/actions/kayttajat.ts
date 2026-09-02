@@ -126,7 +126,7 @@ export async function luoOrganisaatioJaEnsimmainenTyonjohto(input: {
       .single();
 
     if (kayttajaError || !kayttaja) {
-      await admin.auth.admin.deleteUser(authUserId);
+      if (authUserId) await admin.auth.admin.deleteUser(authUserId);
       await admin.from("organisaatiot").delete().eq("id", organisaatioId);
       return { ok: false, virhe: "Viara-käyttäjän luonti epäonnistui." };
     }
@@ -188,7 +188,7 @@ export async function luoOrganisaationKayttaja(input: {
       .single();
 
     if (kayttajaError || !kayttaja) {
-      await admin.auth.admin.deleteUser(authUserId);
+      if (authUserId) await admin.auth.admin.deleteUser(authUserId);
       return { ok: false, virhe: "Viara-käyttäjän luonti epäonnistui." };
     }
 
