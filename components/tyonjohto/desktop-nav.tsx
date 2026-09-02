@@ -8,6 +8,7 @@ import {
   BarChart3,
   Building2,
   Settings,
+  Users,
 } from "lucide-react";
 
 const ITEMS = [
@@ -25,6 +26,7 @@ const ITEMS = [
     Icon: Building2,
     badge: 0,
   },
+  { href: "/tyonjohto/kayttajat", label: "Käyttäjät", Icon: Users, badge: 0 },
   { href: "/tyonjohto/asetukset", label: "Asetukset", Icon: Settings, badge: 0 },
 ];
 
