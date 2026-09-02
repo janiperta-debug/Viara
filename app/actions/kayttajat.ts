@@ -87,7 +87,7 @@ export async function luoOrganisaatioJaEnsimmainenTyonjohto(input: {
   if (!salasana) return { ok: false, virhe: "Salasanan tulee olla vähintään 8 merkkiä." };
 
   const admin = createSupabaseAdminClient();
-  let organisaatioId: string | null = null;
+  let organisaatioId: string | undefined;
   let authUserId: string | null = null;
 
   try {
@@ -138,10 +138,7 @@ export async function luoOrganisaatioJaEnsimmainenTyonjohto(input: {
     return { ok: true, kayttajaId: kayttaja.id, authUserId, organisaatioId };
   } catch {
     if (authUserId) await admin.auth.admin.deleteUser(authUserId).catch(() => undefined);
-    if (organisaatioId !== null) {
-      const id = organisaatioId;
-      await admin.from("organisaatiot").delete().eq("id", id);
-    }
+    if (organisaatioId) await admin.from("organisaatiot").delete().eq("id", organisaatioId);
     return { ok: false, virhe: "Käyttäjän luonnissa tapahtui odottamaton virhe." };
   }
 }
