@@ -138,7 +138,10 @@ export async function luoOrganisaatioJaEnsimmainenTyonjohto(input: {
     return { ok: true, kayttajaId: kayttaja.id, authUserId, organisaatioId };
   } catch {
     if (authUserId) await admin.auth.admin.deleteUser(authUserId).catch(() => undefined);
-    if (organisaatioId) await admin.from("organisaatiot").delete().eq("id", organisaatioId);
+    if (organisaatioId !== null) {
+      const id = organisaatioId;
+      await admin.from("organisaatiot").delete().eq("id", id);
+    }
     return { ok: false, virhe: "Käyttäjän luonnissa tapahtui odottamaton virhe." };
   }
 }
