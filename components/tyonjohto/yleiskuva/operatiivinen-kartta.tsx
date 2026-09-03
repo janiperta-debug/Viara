@@ -104,7 +104,7 @@ export async function OperatiivinenKartta() {
       <div className="flex flex-1 items-center justify-center py-4">
         <div className="w-full max-w-md overflow-hidden rounded-xl">
           <img
-            src="/images/tyon-operatiivinen-tilannekuva.webp"
+            src="/images/viara-operatiivinen-kartta.png"
             alt="Työn operatiivinen tilannekuva"
             width={320}
             height={320}
