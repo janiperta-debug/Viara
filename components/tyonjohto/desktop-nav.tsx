@@ -7,6 +7,7 @@ import {
   TriangleAlert,
   BarChart3,
   Building2,
+  MapPinned,
   Settings,
   Users,
 } from "lucide-react";
@@ -21,9 +22,15 @@ const ITEMS = [
   },
   { href: "/tyonjohto/raportit", label: "Raportit", Icon: BarChart3, badge: 0 },
   {
+    href: "/tyonjohto/asiakkuudet",
+    label: "Asiakkuudet",
+    Icon: Building2,
+    badge: 0,
+  },
+  {
     href: "/tyonjohto/hoitoalueet",
     label: "Hoitoalueet",
-    Icon: Building2,
+    Icon: MapPinned,
     badge: 0,
   },
   { href: "/tyonjohto/kayttajat", label: "Käyttäjät", Icon: Users, badge: 0 },
@@ -40,7 +47,6 @@ export function DesktopNav() {
     >
       <ul className="mx-auto flex w-full max-w-[1920px] items-stretch justify-center gap-1 px-4 py-2 sm:gap-2">
         {ITEMS.map(({ href, label, Icon, badge }) => {
-          // Yleiskuva on tarkka; muut aktivoituvat myös alisivuilla.
           const isActive =
             href === "/tyonjohto"
               ? pathname === "/tyonjohto"
