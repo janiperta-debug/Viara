@@ -13,7 +13,7 @@ const ITEMS: {
   href?: string;
 }[] = [
   { key: "tyo", label: "Työ", Icon: Home, href: "/tyo" },
-  { key: "kartta", label: "Kartta", Icon: Map, href: "/kartta" },
+  { key: "kartta", label: "Työn kartta", Icon: Map, href: "/kartta" },
   {
     key: "havainnot",
     label: "Havainnot",
