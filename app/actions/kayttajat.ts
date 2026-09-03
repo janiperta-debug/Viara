@@ -109,29 +109,20 @@ export async function luoOrganisaatioJaEnsimmainenTyonjohto(input: {
     });
 
     if (authError || !authData.user) {
-      if (organisaatioId) {
-        await admin.from("organisaatiot").delete().eq("id", organisaatioId);
-      }
+      if (organisaatioId) await admin.from("organisaatiot").delete().eq("id", organisaatioId);
       return { ok: false, virhe: authError?.message ?? "Auth-käyttäjän luonti epäonnistui." };
     }
     authUserId = authData.user.id;
 
     const { data: kayttaja, error: kayttajaError } = await admin
       .from("kayttajat")
-      .insert({
-        auth_user_id: authUserId,
-        nimi,
-        rooli: "tyonjohto",
-        organisaatio_id: organisaatioId,
-      })
+      .insert({ auth_user_id: authUserId, nimi, rooli: "tyonjohto", organisaatio_id: organisaatioId })
       .select("id")
       .single();
 
     if (kayttajaError || !kayttaja) {
       if (authUserId) await admin.auth.admin.deleteUser(authUserId);
-      if (organisaatioId) {
-        await admin.from("organisaatiot").delete().eq("id", organisaatioId);
-      }
+      if (organisaatioId) await admin.from("organisaatiot").delete().eq("id", organisaatioId);
       return { ok: false, virhe: "Viara-käyttäjän luonti epäonnistui." };
     }
 
@@ -174,7 +165,6 @@ export async function luoOrganisaationKayttaja(input: {
       password: salasana,
       email_confirm: true,
     });
-
     if (authError || !authData.user) {
       return { ok: false, virhe: authError?.message ?? "Auth-käyttäjän luonti epäonnistui." };
     }
@@ -182,12 +172,7 @@ export async function luoOrganisaationKayttaja(input: {
 
     const { data: kayttaja, error: kayttajaError } = await admin
       .from("kayttajat")
-      .insert({
-        auth_user_id: authUserId,
-        nimi,
-        rooli: input.rooli,
-        organisaatio_id: hallinta.organisaatioId,
-      })
+      .insert({ auth_user_id: authUserId, nimi, rooli: input.rooli, organisaatio_id: hallinta.organisaatioId })
       .select("id")
       .single();
 
@@ -200,6 +185,73 @@ export async function luoOrganisaationKayttaja(input: {
   } catch {
     if (authUserId) await admin.auth.admin.deleteUser(authUserId).catch(() => undefined);
     return { ok: false, virhe: "Käyttäjän luonnissa tapahtui odottamaton virhe." };
+  }
+}
+
+export async function luoAsiakkuudenKayttaja(input: {
+  asiakkuusId: string;
+  nimi: string;
+  email: string;
+  salasana: string;
+}): Promise<KayttajaHallintaTulos> {
+  const hallinta = await haeOmaHallintaTiedot();
+  if (!hallinta.ok || hallinta.rooli !== "tyonjohto" || !hallinta.organisaatioId) {
+    return { ok: false, virhe: "Vain organisaation työnjohto voi lisätä asiakaskäyttäjiä." };
+  }
+
+  if (!input.asiakkuusId) return { ok: false, virhe: "Asiakkuutta ei ole määritetty." };
+  const nimi = validoiNimi(input.nimi);
+  const email = validoiSahkoposti(input.email);
+  const salasana = validoiSalasana(input.salasana);
+  if (!nimi) return { ok: false, virhe: "Nimi ei kelpaa." };
+  if (!email) return { ok: false, virhe: "Sähköpostiosoite ei kelpaa." };
+  if (!salasana) return { ok: false, virhe: "Salasanan tulee olla vähintään 8 merkkiä." };
+
+  const admin = createSupabaseAdminClient();
+  const { data: asiakkuus, error: asiakkuusError } = await admin
+    .from("asiakkuudet")
+    .select("id, organisaatio_id")
+    .eq("id", input.asiakkuusId)
+    .maybeSingle();
+
+  if (asiakkuusError || !asiakkuus) return { ok: false, virhe: "Asiakkuutta ei löytynyt." };
+  if (asiakkuus.organisaatio_id !== hallinta.organisaatioId) {
+    return { ok: false, virhe: "Asiakkuus ei kuulu omaan organisaatioosi." };
+  }
+
+  let authUserId: string | null = null;
+  try {
+    const { data: authData, error: authError } = await admin.auth.admin.createUser({
+      email,
+      password: salasana,
+      email_confirm: true,
+    });
+    if (authError || !authData.user) {
+      return { ok: false, virhe: authError?.message ?? "Auth-käyttäjän luonti epäonnistui." };
+    }
+    authUserId = authData.user.id;
+
+    const { data: kayttaja, error: kayttajaError } = await admin
+      .from("kayttajat")
+      .insert({
+        auth_user_id: authUserId,
+        nimi,
+        rooli: "asiakas",
+        organisaatio_id: hallinta.organisaatioId,
+        asiakkuus_id: input.asiakkuusId,
+      })
+      .select("id")
+      .single();
+
+    if (kayttajaError || !kayttaja) {
+      if (authUserId) await admin.auth.admin.deleteUser(authUserId);
+      return { ok: false, virhe: "Asiakaskäyttäjän luonti epäonnistui." };
+    }
+
+    return { ok: true, kayttajaId: kayttaja.id, authUserId };
+  } catch {
+    if (authUserId) await admin.auth.admin.deleteUser(authUserId).catch(() => undefined);
+    return { ok: false, virhe: "Asiakaskäyttäjän luonnissa tapahtui odottamaton virhe." };
   }
 }
 
