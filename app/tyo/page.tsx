@@ -64,7 +64,7 @@ export default async function TyoPage() {
             />
           </section>
 
-          {/* Avaa operatiivinen kartta */}
+          {/* Työn operatiivinen kartta */}
           <Link
             href="/kartta"
             className="btn-primary flex h-16 w-full items-center justify-between rounded-2xl px-5 text-primary-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:h-[4.5rem]"
@@ -72,7 +72,7 @@ export default async function TyoPage() {
             <span className="flex items-center gap-3">
               <Map className="h-6 w-6" strokeWidth={1.75} />
               <span className="text-base font-semibold md:text-lg">
-                Avaa operatiivinen kartta
+                Avaa työn operatiivinen kartta
               </span>
             </span>
             <ChevronRight className="h-5 w-5" />
