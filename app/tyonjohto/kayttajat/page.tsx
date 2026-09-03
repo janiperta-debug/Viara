@@ -1,4 +1,4 @@
-import { AdmininOrganisaationLuonti, OrganisaationKayttajahallinta } from "@/components/tyonjohto/kayttajat/kayttajahallinta";
+import { OrganisaationKayttajahallinta } from "@/components/tyonjohto/kayttajat/kayttajahallinta";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -9,24 +9,33 @@ type KayttajaRivi = {
 };
 
 export default async function KayttajatPage() {
-  const rooli = await vaadiRooli(["admin", "tyonjohto"]);
+  await vaadiRooli(["admin", "tyonjohto"]);
 
-  if (rooli === "admin") {
+  const supabase = await createSupabaseServerClient();
+  const { data: omaKayttaja } = await supabase.rpc("fn_oma_kayttaja").maybeSingle();
+  const organisaatioId =
+    omaKayttaja && typeof omaKayttaja.organisaatio_id === "string"
+      ? omaKayttaja.organisaatio_id
+      : null;
+
+  if (!organisaatioId) {
     return (
       <div className="flex flex-col gap-6">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Käyttäjähallinta</h1>
-          <p className="text-sm text-muted">Luo uusi organisaatio ja sen ensimmäinen työnjohto.</p>
+          <p className="text-sm text-muted">Organisaatiota ei ole määritetty tälle käyttäjälle.</p>
         </div>
-        <AdmininOrganisaationLuonti />
       </div>
     );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const [omaKayttajaTulos, kayttajatTulos] = await Promise.all([
-    supabase.rpc("fn_oma_kayttaja").maybeSingle(),
-    supabase.from("kayttajat").select("id, nimi, rooli").order("nimi"),
+  const [kayttajatTulos, organisaatioTulos] = await Promise.all([
+    supabase
+      .from("kayttajat")
+      .select("id, nimi, rooli")
+      .eq("organisaatio_id", organisaatioId)
+      .order("nimi"),
+    supabase.from("organisaatiot").select("nimi").eq("id", organisaatioId).maybeSingle(),
   ]);
 
   const kayttajat: KayttajaRivi[] = (kayttajatTulos.data ?? []).filter(
@@ -35,14 +44,6 @@ export default async function KayttajatPage() {
       typeof kayttaja.nimi === "string" &&
       typeof kayttaja.rooli === "string"
   );
-  const omaKayttaja = omaKayttajaTulos.data as Record<string, unknown> | null;
-  const organisaatioId =
-    omaKayttaja && typeof omaKayttaja.organisaatio_id === "string"
-      ? omaKayttaja.organisaatio_id
-      : null;
-  const organisaatioTulos = organisaatioId
-    ? await supabase.from("organisaatiot").select("nimi").eq("id", organisaatioId).maybeSingle()
-    : { data: null };
   const organisaationNimi =
     typeof organisaatioTulos.data?.nimi === "string"
       ? organisaatioTulos.data.nimi
