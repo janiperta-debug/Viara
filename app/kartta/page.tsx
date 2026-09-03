@@ -97,7 +97,7 @@ export default async function KarttaPage() {
             id="urakan-tilanne-otsikko"
             className="px-1 text-xs font-semibold uppercase tracking-wider text-muted"
           >
-            Urakan tilanne
+            Työn operatiivinen kartta
           </p>
           <div className="mt-1 flex items-baseline gap-2 px-1">
             <span className="text-4xl font-bold text-foreground md:text-5xl">
@@ -138,11 +138,11 @@ export default async function KarttaPage() {
           ))}
         </section>
 
-        <section aria-label="Operatiivinen tilannekuva" className="metal-card rounded-3xl p-5 md:p-7">
+        <section aria-label="Työn operatiivinen kartta" className="metal-card rounded-3xl p-5 md:p-7">
           <div className="overflow-hidden rounded-2xl">
             <img
-              src="/images/operatiivinen-kartta.webp"
-              alt="Talvikunnossapidon operatiivinen tilannekuva"
+              src="/images/tyon-operatiivinen-tilannekuva.webp"
+              alt="Työn operatiivinen tilannekuva"
               width={768}
               height={768}
               className="h-auto w-full"
