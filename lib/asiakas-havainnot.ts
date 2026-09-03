@@ -44,10 +44,18 @@ function rooliLabel(rooli: string | null | undefined) {
 }
 
 function statusNormalisoi(status: string): AsiakasHavaintoStatus | null {
-  if (status === "avoin" || status === "tyon_alla" || status === "valmis" || status === "suljettu") {
-    return status;
-  }
+  if (status === "avoin" || status === "tyon_alla" || status === "valmis" || status === "suljettu") return status;
   return null;
+}
+
+function kuvausMuotoile(sijainti: string | null, lisatiedot: unknown) {
+  if (typeof lisatiedot === "string" && lisatiedot.trim()) return lisatiedot.trim();
+  if (sijainti?.trim()) return sijainti.trim();
+  if (lisatiedot && typeof lisatiedot === "object") {
+    const teksti = JSON.stringify(lisatiedot);
+    return teksti === "{}" ? "" : teksti;
+  }
+  return "";
 }
 
 export async function haeAsiakasHavainnot(): Promise<AsiakasHavainto[] | null> {
@@ -119,7 +127,6 @@ export async function haeAsiakasHavainnot(): Promise<AsiakasHavainto[] | null> {
 
     const tyyppi = tyyppiNormalisoi(havainto.tyyppi);
     const tekija = havainto.luoja_id ? kayttajaMap.get(havainto.luoja_id) : undefined;
-    const kuvaus = havainto.lisatiedot?.trim?.() ?? havainto.sijainti_kuvaus ?? "";
 
     return [{
       id: havainto.id,
@@ -128,7 +135,7 @@ export async function haeAsiakasHavainnot(): Promise<AsiakasHavainto[] | null> {
       hoitoalueOsoite: alue.osoite,
       tyyppi,
       otsikko: tyyppiOtsikko(tyyppi),
-      kuvaus,
+      kuvaus: kuvausMuotoile(havainto.sijainti_kuvaus, havainto.lisatiedot),
       aika: new Date(havainto.luotu).toLocaleString("fi-FI"),
       status,
       tekija: tekija?.nimi ?? "Tuntematon käyttäjä",
