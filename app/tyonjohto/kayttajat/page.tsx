@@ -8,15 +8,19 @@ type KayttajaRivi = {
   rooli: string;
 };
 
+type OmaKayttaja = {
+  organisaatio_id: string | null;
+};
+
 export default async function KayttajatPage() {
   await vaadiRooli(["admin", "tyonjohto"]);
 
   const supabase = await createSupabaseServerClient();
-  const { data: omaKayttaja } = await supabase.rpc("fn_oma_kayttaja").maybeSingle();
-  const organisaatioId =
-    omaKayttaja && typeof omaKayttaja.organisaatio_id === "string"
-      ? omaKayttaja.organisaatio_id
-      : null;
+  const { data: omaKayttaja } = await supabase
+    .rpc("fn_oma_kayttaja")
+    .maybeSingle();
+  const omaKayttajaTiedot = omaKayttaja as OmaKayttaja | null;
+  const organisaatioId = omaKayttajaTiedot?.organisaatio_id ?? null;
 
   if (!organisaatioId) {
     return (
@@ -35,7 +39,11 @@ export default async function KayttajatPage() {
       .select("id, nimi, rooli")
       .eq("organisaatio_id", organisaatioId)
       .order("nimi"),
-    supabase.from("organisaatiot").select("nimi").eq("id", organisaatioId).maybeSingle(),
+    supabase
+      .from("organisaatiot")
+      .select("nimi")
+      .eq("id", organisaatioId)
+      .maybeSingle(),
   ]);
 
   const kayttajat: KayttajaRivi[] = (kayttajatTulos.data ?? []).filter(
