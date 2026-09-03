@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
 import { onViaraRooli, sallitutNakymat } from "@/lib/nakymat";
@@ -51,6 +52,15 @@ export default async function ValitsePage() {
               </form>
             );
           })}
+
+          {rooli === "admin" && (
+            <Link
+              href="/admin/kayttajat"
+              className="flex h-14 w-full items-center justify-center rounded-full border border-border bg-white text-base font-semibold text-foreground shadow-sm transition hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Ylläpito
+            </Link>
+          )}
         </div>
       </div>
     </main>
