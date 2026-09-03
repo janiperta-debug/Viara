@@ -1,0 +1,111 @@
+"use client";
+
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleDot,
+  Snowflake,
+  Sparkles,
+  Truck,
+  Wrench,
+} from "lucide-react";
+import type { AsiakasHavainto, AsiakasHavaintoStatus, AsiakasHavaintoTyyppi } from "@/lib/asiakas-havainnot";
+
+const TYYPPI_IKONI: Record<AsiakasHavaintoTyyppi, typeof Snowflake> = {
+  liukkaus: Snowflake,
+  auraus: Truck,
+  hiekoitus: Sparkles,
+  vaurio: Wrench,
+  muu: AlertCircle,
+};
+
+const STATUS: Record<AsiakasHavaintoStatus, { label: string; className: string }> = {
+  avoin: { label: "Avoin", className: "bg-amber-500" },
+  tyon_alla: { label: "Työn alla", className: "bg-blue-500" },
+  valmis: { label: "Valmis", className: "bg-green-600" },
+  suljettu: { label: "Suljettu", className: "bg-slate-500" },
+};
+
+export function AsiakasHavainnotNakyma({ havainnot }: { havainnot: AsiakasHavainto[] }) {
+  const avoimet = havainnot.filter((h) => h.status === "avoin" || h.status === "tyon_alla").length;
+  const alueet = Array.from(
+    new Map(havainnot.map((h) => [h.hoitoalueId, { nimi: h.hoitoalueNimi, osoite: h.hoitoalueOsoite }])).entries(),
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header>
+        <h1 className="text-3xl font-bold text-foreground md:text-4xl">Havainnot</h1>
+        <p className="mt-1 text-base text-muted">
+          {havainnot.length} havaintoa · {avoimet} avointa
+        </p>
+      </header>
+
+      {havainnot.length === 0 ? (
+        <div className="metal-card rounded-3xl p-8 text-center">
+          <CheckCircle2 className="mx-auto h-10 w-10 text-muted" strokeWidth={1.5} />
+          <h2 className="mt-3 text-lg font-semibold text-foreground">Ei havaintoja</h2>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted">
+            Asiakkuuteesi kuuluvilta hoitoalueilta ei ole vielä kirjattu havaintoja.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-7">
+          {alueet.map(([alueId, alue]) => {
+            const alueenHavainnot = havainnot.filter((h) => h.hoitoalueId === alueId);
+            return (
+              <section key={alueId} aria-label={`${alue.nimi} — havainnot`} className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border/60 pb-2">
+                  <div>
+                    <h2 className="text-base font-semibold text-foreground">{alue.nimi}</h2>
+                    {alue.osoite && <p className="text-sm text-muted">{alue.osoite}</p>}
+                  </div>
+                  <span className="text-sm text-muted">{alueenHavainnot.length} havaintoa</span>
+                </div>
+
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {alueenHavainnot.map((havainto) => (
+                    <HavaintoKortti key={havainto.id} havainto={havainto} />
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HavaintoKortti({ havainto }: { havainto: AsiakasHavainto }) {
+  const Ikoni = TYYPPI_IKONI[havainto.tyyppi];
+  const status = STATUS[havainto.status];
+
+  return (
+    <article className="metal-card flex items-start gap-4 rounded-2xl p-4">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
+        <Ikoni className="h-6 w-6" strokeWidth={1.75} />
+      </span>
+
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <h3 className="truncate text-base font-semibold text-foreground">{havainto.otsikko}</h3>
+        </div>
+        <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted">
+          <span>{havainto.aika}</span>
+          <span aria-hidden>·</span>
+          <span>{havainto.tekijaRooli}</span>
+          <span aria-hidden>·</span>
+          <span>{havainto.tekija}</span>
+        </p>
+        {havainto.kuvaus && (
+          <p className="mt-1.5 line-clamp-3 text-sm text-foreground/70">{havainto.kuvaus}</p>
+        )}
+        <div className="mt-2 flex items-center gap-2 text-xs font-medium text-muted">
+          <CircleDot className={`h-3 w-3 ${status.className.replace("bg-", "text-")}`} />
+          {status.label}
+        </div>
+      </div>
+    </article>
+  );
+}
