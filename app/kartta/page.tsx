@@ -141,7 +141,7 @@ export default async function KarttaPage() {
         <section aria-label="Työn operatiivinen kartta" className="metal-card rounded-3xl p-5 md:p-7">
           <div className="overflow-hidden rounded-2xl">
             <img
-              src="/images/tyon-operatiivinen-tilannekuva.webp"
+              src="/images/viara-operatiivinen-kartta.png"
               alt="Työn operatiivinen tilannekuva"
               width={768}
               height={768}
