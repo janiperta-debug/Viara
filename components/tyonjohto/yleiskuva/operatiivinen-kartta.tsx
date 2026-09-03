@@ -92,7 +92,7 @@ export async function OperatiivinenKartta() {
     <section className="metal-card flex h-full flex-col rounded-2xl p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">
-          Operatiivinen tilannekuva
+          Työn operatiivinen tilannekuva
         </h2>
         <div className="flex flex-wrap items-center gap-4">
           <Selite vari="#16a34a" label="Valmis" maara={tila.valmis} />
@@ -104,8 +104,8 @@ export async function OperatiivinenKartta() {
       <div className="flex flex-1 items-center justify-center py-4">
         <div className="w-full max-w-md overflow-hidden rounded-xl">
           <img
-            src="/images/operatiivinen-kartta.webp"
-            alt="Talvikunnossapidon operatiivinen tilannekuva"
+            src="/images/tyon-operatiivinen-tilannekuva.webp"
+            alt="Työn operatiivinen tilannekuva"
             width={320}
             height={320}
             className="h-auto w-full"
