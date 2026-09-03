@@ -1,110 +1,94 @@
 "use client";
 
-import { useEffect } from "react";
-import { X, Search, Map, SquareStack, UserPlus } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { X, MapPin, LoaderCircle, Save } from "lucide-react";
+import { luoHoitoalue } from "@/app/actions/hoitoalueet";
 
-const VAIHEET = [
-  {
-    Icon: Search,
-    otsikko: "Hae kiinteistö",
-    kuvaus: "Haku osoitteella tai kiinteistötunnuksella.",
-  },
-  {
-    Icon: Map,
-    otsikko: "Maanmittauslaitos",
-    kuvaus: "Kiinteistörajat haetaan MML:n aineistosta.",
-  },
-  {
-    Icon: SquareStack,
-    otsikko: "Valitse palsta / kiinteistö",
-    kuvaus: "Vahvista hoitoalueeseen kuuluvat rajat.",
-  },
-  {
-    Icon: UserPlus,
-    otsikko: "Luo hoitoalue ja osoita kuljettaja",
-    kuvaus: "Hoitoalue tulee näkyviin kuljettajan sovellukseen.",
-  },
-];
+type Asiakkuus = { id: string; nimi: string };
 
-export function LisaaHoitoalueModaali({ onClose }: { onClose: () => void }) {
+type Props = {
+  asiakkuudet: Asiakkuus[];
+  onClose: () => void;
+  onSaved: () => void;
+};
+
+export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) {
+  const [odottaa, startTransition] = useTransition();
+  const [nimi, setNimi] = useState("");
+  const [osoite, setOsoite] = useState("");
+  const [kiinteistotunnus, setKiinteistotunnus] = useState("");
+  const [asiakkuusId, setAsiakkuusId] = useState(asiakkuudet[0]?.id ?? "");
+  const [virhe, setVirhe] = useState<string | null>(null);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape" && !odottaa) onClose();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, [onClose, odottaa]);
+
+  function tallenna() {
+    setVirhe(null);
+    startTransition(async () => {
+      const tulos = await luoHoitoalue({ nimi, osoite, kiinteistotunnus, asiakkuusId });
+      if (!tulos.ok) {
+        setVirhe(tulos.virhe);
+        return;
+      }
+      onSaved();
+    });
+  }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="lisaa-hoitoalue-otsikko"
-    >
-      {/* Tausta */}
-      <button
-        type="button"
-        aria-label="Sulje"
-        onClick={onClose}
-        className="absolute inset-0 bg-foreground/40 backdrop-blur-sm"
-      />
-
-      {/* Sisältö */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="lisaa-hoitoalue-otsikko">
+      <button type="button" aria-label="Sulje" onClick={onClose} disabled={odottaa} className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" />
       <div className="metal-card relative z-10 w-full max-w-lg rounded-2xl p-6">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <h2
-              id="lisaa-hoitoalue-otsikko"
-              className="text-lg font-semibold text-foreground"
-            >
-              Lisää hoitoalue
-            </h2>
-            <p className="mt-1 text-sm text-muted">
-              Tuleva työnkulku hoitoalueen luomiseen.
-            </p>
+            <h2 id="lisaa-hoitoalue-otsikko" className="text-lg font-semibold text-foreground">Lisää hoitoalue</h2>
+            <p className="mt-1 text-sm text-muted">Liitä hoitoalue asiakkuuteen ja tallenna sen perustiedot.</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Sulje"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition-colors hover:bg-white/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
+          <button type="button" onClick={onClose} disabled={odottaa} aria-label="Sulje" className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-white/60 hover:text-foreground disabled:opacity-50">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <ol className="mt-5 flex flex-col gap-3">
-          {VAIHEET.map(({ Icon, otsikko, kuvaus }, i) => (
-            <li
-              key={otsikko}
-              className="flex items-start gap-3 rounded-xl border border-border/60 bg-white/60 p-3"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Icon className="h-5 w-5" strokeWidth={1.75} />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {i + 1}. {otsikko}
-                </p>
-                <p className="text-xs text-muted">{kuvaus}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-xs text-muted">
-          Maanmittauslaitos-integraatiota ei ole vielä toteutettu. Tämä on
-          esitys tulevasta työnkulusta.
-        </div>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="btn-primary mt-5 flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold text-primary-foreground"
-        >
-          Selvä
-        </button>
+        {asiakkuudet.length === 0 ? (
+          <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 px-4 py-4 text-sm text-muted">
+            Luo ensin vähintään yksi asiakkuus. Hoitoaluetta ei voi luoda ilman asiakkuutta.
+          </div>
+        ) : (
+          <div className="mt-5 space-y-4">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-foreground">Asiakkuus</span>
+              <select value={asiakkuusId} onChange={(e) => setAsiakkuusId(e.target.value)} className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                {asiakkuudet.map((a) => <option key={a.id} value={a.id}>{a.nimi}</option>)}
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-foreground">Hoitoalueen nimi</span>
+              <input value={nimi} onChange={(e) => setNimi(e.target.value)} maxLength={200} placeholder="Esim. As Oy Mäntyrinne" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-foreground">Osoite</span>
+              <input value={osoite} onChange={(e) => setOsoite(e.target.value)} maxLength={200} placeholder="Keskuskatu 12, 05800 Hyvinkää" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium text-foreground">Kiinteistötunnus <span className="font-normal text-muted">(valinnainen)</span></span>
+              <input value={kiinteistotunnus} onChange={(e) => setKiinteistotunnus(e.target.value)} maxLength={200} placeholder="Esim. 106-1-2-3" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
+            </label>
+            <div className="flex items-start gap-2 rounded-xl border border-border/60 bg-white/60 px-3.5 py-3 text-xs text-muted">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>Kiinteistöraja voidaan liittää myöhemmin. Ilman rajageometriaa hoitoaluetta ei vielä voida käyttää GPS-alueena.</span>
+            </div>
+            {virhe && <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{virhe}</p>}
+            <button type="button" onClick={tallenna} disabled={odottaa || !nimi.trim() || !osoite.trim() || !asiakkuusId} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">
+              {odottaa ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Tallenna hoitoalue
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
