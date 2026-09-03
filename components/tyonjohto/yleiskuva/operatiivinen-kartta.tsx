@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 
@@ -104,13 +103,12 @@ export async function OperatiivinenKartta() {
 
       <div className="flex flex-1 items-center justify-center py-4">
         <div className="w-full max-w-md overflow-hidden rounded-xl">
-          <Image
+          <img
             src="/images/operatiivinen-kartta.webp"
             alt="Talvikunnossapidon operatiivinen tilannekuva"
             width={320}
             height={320}
             className="h-auto w-full"
-            priority
           />
         </div>
       </div>
