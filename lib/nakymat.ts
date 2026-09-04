@@ -13,11 +13,7 @@ const NAKYMAT_ROOLEITTAIN: Record<
   ViaraRooli,
   readonly NakymaLinkki[]
 > = {
-  admin: [
-    { href: "/tyo", label: "Työ" },
-    { href: "/tyonjohto", label: "Työnjohto" },
-    { href: "/asiakas", label: "Asiakas" },
-  ],
+  admin: [],
   asiakas: [{ href: "/asiakas", label: "Asiakas" }],
   kuljettaja: [{ href: "/tyo", label: "Työ" }],
   tyonjohto: [
