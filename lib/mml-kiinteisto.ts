@@ -8,7 +8,8 @@ type GeoJsonGeometry = {
 
 type MmlFeature = {
   type?: string;
-  geometry?: GeoJsonGeometry | null;
+  id?: string | number;
+  geometry?: { type?: string; coordinates?: unknown } | null;
   properties?: Record<string, unknown>;
   [key: string]: unknown;
 };
@@ -50,7 +51,7 @@ function featureLabel(feature: MmlFeature) {
 }
 
 function featurePoint(feature: MmlFeature) {
-  const geometry = feature.geometry as { type?: string; coordinates?: unknown } | null | undefined;
+  const geometry = feature.geometry;
   if (!geometry || geometry.type !== "Point" || !Array.isArray(geometry.coordinates) || geometry.coordinates.length < 2) {
     return { lat: null, lng: null };
   }
@@ -67,8 +68,8 @@ function normalizeKiinteistotunnus(value: string) {
 function muodostaRaja(features: MmlFeature[]): GeoJsonGeometry | null {
   const geometries = features
     .map((feature) => feature.geometry)
-    .filter((geometry): geometry is GeoJsonGeometry =>
-      Boolean(geometry) && (geometry.type === "Polygon" || geometry.type === "MultiPolygon")
+    .filter((geometry): geometry is { type: "Polygon" | "MultiPolygon"; coordinates: unknown } =>
+      Boolean(geometry) && (geometry.type === "Polygon" || geometry.type === "MultiPolygon") && Array.isArray(geometry.coordinates)
     );
 
   if (geometries.length === 0) return null;
@@ -76,13 +77,9 @@ function muodostaRaja(features: MmlFeature[]): GeoJsonGeometry | null {
 
   const coordinates: unknown[] = [];
   for (const geometry of geometries) {
-    if (geometry.type === "Polygon" && Array.isArray(geometry.coordinates)) {
-      coordinates.push(geometry.coordinates);
-    } else if (geometry.type === "MultiPolygon" && Array.isArray(geometry.coordinates)) {
-      coordinates.push(...geometry.coordinates);
-    }
+    if (geometry.type === "Polygon") coordinates.push(geometry.coordinates);
+    else coordinates.push(...(geometry.coordinates as unknown[]));
   }
-
   return coordinates.length > 0 ? { type: "MultiPolygon", coordinates } : null;
 }
 
@@ -95,10 +92,7 @@ async function mmlFetch(url: URL) {
     },
     next: { revalidate: 300 },
   });
-
-  if (!response.ok) {
-    throw new Error(`MML palautti HTTP ${response.status}.`);
-  }
+  if (!response.ok) throw new Error(`MML palautti HTTP ${response.status}.`);
   return (await response.json()) as MmlFeatureCollection;
 }
 
@@ -125,19 +119,28 @@ export async function haeMmlOsoitteet(osoite: string): Promise<MmlOsoiteKohde[]>
   });
 }
 
+export async function haeMmlKiinteistotunnuksella(kiinteistotunnus: string): Promise<MmlHoitoalueKohde> {
+  const tunnus = kiinteistotunnus.trim();
+  const url = new URL(MML_KIINTEISTO_URL);
+  url.searchParams.set("kiinteistotunnus", normalizeKiinteistotunnus(tunnus));
+  const data = await mmlFetch(url);
+  return {
+    id: `kiinteisto-${normalizeKiinteistotunnus(tunnus)}`,
+    osoite: "",
+    kiinteistotunnus: tunnus,
+    lat: null,
+    lng: null,
+    rajaGeoJson: muodostaRaja(data.features ?? []),
+  };
+}
+
 export async function haeMmlHoitoalueKohteet(osoite: string): Promise<MmlHoitoalueKohde[]> {
   const osoitteet = await haeMmlOsoitteet(osoite);
   const kohteet = osoitteet.filter((kohde) => kohde.kiinteistotunnus);
-
   return Promise.all(
     kohteet.map(async (kohde) => {
-      const url = new URL(MML_KIINTEISTO_URL);
-      url.searchParams.set("kiinteistotunnus", normalizeKiinteistotunnus(kohde.kiinteistotunnus!));
-      const data = await mmlFetch(url);
-      return {
-        ...kohde,
-        rajaGeoJson: muodostaRaja(data.features ?? []),
-      };
+      const raja = await haeMmlKiinteistotunnuksella(kohde.kiinteistotunnus!);
+      return { ...kohde, rajaGeoJson: raja.rajaGeoJson };
     })
   );
 }
