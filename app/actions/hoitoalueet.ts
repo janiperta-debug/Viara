@@ -8,8 +8,6 @@ type Tulos =
   | { ok: true; hoitoalueId: string }
   | { ok: false; virhe: string };
 
-type RajaPiste = { lat: number; lng: number };
-
 async function haeOmaOrganisaatio(): Promise<
   | { ok: true; organisaatioId: string }
   | { ok: false; virhe: string }
@@ -38,26 +36,11 @@ function validoiTeksti(value: string, max = 200): string | null {
   return result && result.length <= max ? result : null;
 }
 
-function muodostaRajaGeoJson(pisteet: RajaPiste[]) {
-  if (pisteet.length < 3) return null;
-  if (pisteet.some((p) => !Number.isFinite(p.lat) || !Number.isFinite(p.lng) || p.lat < -90 || p.lat > 90 || p.lng < -180 || p.lng > 180)) {
-    return null;
-  }
-
-  const ring = pisteet.map((p) => [p.lng, p.lat]);
-  ring.push([pisteet[0].lng, pisteet[0].lat]);
-  return {
-    type: "Polygon" as const,
-    coordinates: [ring],
-  };
-}
-
 export async function luoHoitoalue(input: {
   nimi: string;
   osoite: string;
   kiinteistotunnus: string;
   asiakkuusId: string;
-  rajaPisteet: RajaPiste[];
 }): Promise<Tulos> {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
@@ -65,11 +48,9 @@ export async function luoHoitoalue(input: {
   const nimi = validoiTeksti(input.nimi);
   const osoite = validoiTeksti(input.osoite);
   const kiinteistotunnus = validoiTeksti(input.kiinteistotunnus);
-  const rajaGeoJson = muodostaRajaGeoJson(input.rajaPisteet);
   if (!nimi) return { ok: false, virhe: "Hoitoalueen nimi ei kelpaa." };
   if (!osoite) return { ok: false, virhe: "Osoite ei kelpaa." };
   if (!input.asiakkuusId) return { ok: false, virhe: "Valitse asiakkuus." };
-  if (!rajaGeoJson) return { ok: false, virhe: "Piirrä hoitoalueelle vähintään kolme rajapistettä kartalle." };
 
   const admin = createSupabaseAdminClient();
   const { data: asiakkuus, error: asiakkuusError } = await admin
@@ -90,7 +71,6 @@ export async function luoHoitoalue(input: {
       osoite,
       kiinteistotunnus: kiinteistotunnus || null,
       asiakkuus_id: asiakkuus.id,
-      raja_geojson: rajaGeoJson,
     })
     .select("id")
     .single();
@@ -104,7 +84,7 @@ export async function luoHoitoalue(input: {
 
 export async function paivitaHoitoalue(
   hoitoalueId: string,
-  input: { nimi: string; osoite: string; kiinteistotunnus: string; asiakkuusId: string; rajaPisteet: RajaPiste[] }
+  input: { nimi: string; osoite: string; kiinteistotunnus: string; asiakkuusId: string }
 ): Promise<Tulos> {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
@@ -113,11 +93,9 @@ export async function paivitaHoitoalue(
   const nimi = validoiTeksti(input.nimi);
   const osoite = validoiTeksti(input.osoite);
   const kiinteistotunnus = validoiTeksti(input.kiinteistotunnus);
-  const rajaGeoJson = muodostaRajaGeoJson(input.rajaPisteet);
   if (!nimi) return { ok: false, virhe: "Hoitoalueen nimi ei kelpaa." };
   if (!osoite) return { ok: false, virhe: "Osoite ei kelpaa." };
   if (!input.asiakkuusId) return { ok: false, virhe: "Valitse asiakkuus." };
-  if (!rajaGeoJson) return { ok: false, virhe: "Piirrä hoitoalueelle vähintään kolme rajapistettä kartalle." };
 
   const admin = createSupabaseAdminClient();
   const { data: asiakkuus } = await admin
@@ -143,7 +121,6 @@ export async function paivitaHoitoalue(
       osoite,
       kiinteistotunnus: kiinteistotunnus || null,
       asiakkuus_id: asiakkuus.id,
-      raja_geojson: rajaGeoJson,
     })
     .eq("id", hoitoalueId);
 
