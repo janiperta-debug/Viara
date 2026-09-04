@@ -16,6 +16,9 @@ export type AsiakasHavainto = {
   status: AsiakasHavaintoStatus;
   tekija: string;
   tekijaRooli: string;
+  kuittausaika: string | null;
+  valmistumisaika: string | null;
+  sulkemisaika: string | null;
 };
 
 function tyyppiNormalisoi(tyyppi: string): AsiakasHavaintoTyyppi {
@@ -58,76 +61,63 @@ function kuvausMuotoile(sijainti: string | null, lisatiedot: unknown) {
   return "";
 }
 
+function muotoileAika(aikaleima: string | null): string | null {
+  if (!aikaleima) return null;
+  return new Intl.DateTimeFormat("fi-FI", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(aikaleima));
+}
+
 export async function haeAsiakasHavainnot(): Promise<AsiakasHavainto[] | null> {
   const supabase = await createSupabaseServerClient();
-  const { data: omaKayttaja, error: kayttajaError } = await supabase
-    .rpc("fn_oma_kayttaja")
-    .maybeSingle();
-
+  const { data: omaKayttaja, error: kayttajaError } = await supabase.rpc("fn_oma_kayttaja").maybeSingle();
   if (kayttajaError || !omaKayttaja || typeof omaKayttaja !== "object") return null;
 
   const kayttaja = omaKayttaja as Record<string, unknown>;
   const asiakkuusId = typeof kayttaja.asiakkuus_id === "string" ? kayttaja.asiakkuus_id : null;
   const organisaatioId = typeof kayttaja.organisaatio_id === "string" ? kayttaja.organisaatio_id : null;
-
   if (!asiakkuusId) return [];
 
   const admin = createSupabaseAdminClient();
-  const { data: asiakkuus, error: asiakkuusError } = await admin
-    .from("asiakkuudet")
-    .select("id, organisaatio_id")
-    .eq("id", asiakkuusId)
-    .maybeSingle();
+  const { data: asiakkuus, error: asiakkuusError } = await admin.from("asiakkuudet").select("id, organisaatio_id").eq("id", asiakkuusId).maybeSingle();
+  if (asiakkuusError || !asiakkuus || (organisaatioId && asiakkuus.organisaatio_id !== organisaatioId)) return null;
 
-  if (asiakkuusError || !asiakkuus) return null;
-  if (organisaatioId && asiakkuus.organisaatio_id !== organisaatioId) return null;
-
-  const { data: alueet, error: alueError } = await admin
-    .from("hoitoalueet")
-    .select("id, nimi, osoite")
-    .eq("asiakkuus_id", asiakkuusId);
-
+  const { data: alueet, error: alueError } = await admin.from("hoitoalueet").select("id, nimi, osoite").eq("asiakkuus_id", asiakkuusId);
   if (alueError) return null;
 
   const alueIds = (alueet ?? []).map((alue) => alue.id);
   if (alueIds.length === 0) return [];
+  const alueMap = new Map((alueet ?? []).map((alue) => [alue.id, { nimi: alue.nimi, osoite: alue.osoite }]));
 
-  const alueMap = new Map(
-    (alueet ?? []).map((alue) => [alue.id, { nimi: alue.nimi, osoite: alue.osoite }]),
-  );
-
-  const { data: havainnot, error: havaintoError } = await admin
-    .from("havainnot")
-    .select("id, hoitoalue_id, tyyppi, luoja_id, tila, sijainti_kuvaus, lisatiedot, luotu")
-    .in("hoitoalue_id", alueIds)
-    .order("luotu", { ascending: false });
-
+  const { data: havainnot, error: havaintoError } = await admin.from("havainnot").select("id, hoitoalue_id, tyyppi, luoja_id, tila, sijainti_kuvaus, lisatiedot, luotu").in("hoitoalue_id", alueIds).order("luotu", { ascending: false });
   if (havaintoError) return null;
 
-  const luojaIds = Array.from(
-    new Set((havainnot ?? []).map((havainto) => havainto.luoja_id).filter((id): id is string => Boolean(id))),
-  );
+  const havaintoIds = (havainnot ?? []).map((havainto) => havainto.id);
+  const tapahtumaMap = new Map<string, { kuittaus: string | null; valmistuminen: string | null; sulkeminen: string | null }>();
+  if (havaintoIds.length > 0) {
+    const { data: tapahtumat } = await admin.from("tapahtumat").select("havainto_id, tyyppi, aikaleima").in("havainto_id", havaintoIds).in("tyyppi", ["havainto_otettu_tyon_alle", "havainto_valmis", "havainto_suljettu"]).order("aikaleima", { ascending: true });
+    for (const tapahtuma of tapahtumat ?? []) {
+      if (!tapahtuma.havainto_id) continue;
+      const nykyinen = tapahtumaMap.get(tapahtuma.havainto_id) ?? { kuittaus: null, valmistuminen: null, sulkeminen: null };
+      if (tapahtuma.tyyppi === "havainto_otettu_tyon_alle" && !nykyinen.kuittaus) nykyinen.kuittaus = tapahtuma.aikaleima;
+      if (tapahtuma.tyyppi === "havainto_valmis" && !nykyinen.valmistuminen) nykyinen.valmistuminen = tapahtuma.aikaleima;
+      if (tapahtuma.tyyppi === "havainto_suljettu" && !nykyinen.sulkeminen) nykyinen.sulkeminen = tapahtuma.aikaleima;
+      tapahtumaMap.set(tapahtuma.havainto_id, nykyinen);
+    }
+  }
 
+  const luojaIds = Array.from(new Set((havainnot ?? []).map((havainto) => havainto.luoja_id).filter((id): id is string => Boolean(id))));
   const kayttajaMap = new Map<string, { nimi: string; rooli: string }>();
   if (luojaIds.length > 0) {
-    const { data: kayttajat } = await admin
-      .from("kayttajat")
-      .select("id, nimi, rooli")
-      .in("id", luojaIds);
-
-    for (const kayttaja of kayttajat ?? []) {
-      kayttajaMap.set(kayttaja.id, { nimi: kayttaja.nimi, rooli: kayttaja.rooli });
-    }
+    const { data: kayttajat } = await admin.from("kayttajat").select("id, nimi, rooli").in("id", luojaIds);
+    for (const kayttaja of kayttajat ?? []) kayttajaMap.set(kayttaja.id, { nimi: kayttaja.nimi, rooli: kayttaja.rooli });
   }
 
   return (havainnot ?? []).flatMap((havainto) => {
     const alue = alueMap.get(havainto.hoitoalue_id);
     const status = statusNormalisoi(havainto.tila);
     if (!alue || !status) return [];
-
     const tyyppi = tyyppiNormalisoi(havainto.tyyppi);
     const tekija = havainto.luoja_id ? kayttajaMap.get(havainto.luoja_id) : undefined;
-
+    const ajat = tapahtumaMap.get(havainto.id);
     return [{
       id: havainto.id,
       hoitoalueId: havainto.hoitoalue_id,
@@ -136,10 +126,13 @@ export async function haeAsiakasHavainnot(): Promise<AsiakasHavainto[] | null> {
       tyyppi,
       otsikko: tyyppiOtsikko(tyyppi),
       kuvaus: kuvausMuotoile(havainto.sijainti_kuvaus, havainto.lisatiedot),
-      aika: new Date(havainto.luotu).toLocaleString("fi-FI"),
+      aika: muotoileAika(havainto.luotu) ?? "",
       status,
       tekija: tekija?.nimi ?? "Tuntematon käyttäjä",
       tekijaRooli: rooliLabel(tekija?.rooli),
+      kuittausaika: muotoileAika(ajat?.kuittaus ?? null),
+      valmistumisaika: muotoileAika(ajat?.valmistuminen ?? null),
+      sulkemisaika: muotoileAika(ajat?.sulkeminen ?? null),
     }];
   });
 }
