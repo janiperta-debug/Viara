@@ -3,6 +3,8 @@ import { KuljettajaStatus, type KuljettajaStatus as KuljettajaStatusTila } from 
 import { OperatiivinenKartta } from "@/components/tyonjohto/yleiskuva/operatiivinen-kartta";
 import { Tapahtumavirta, type TyonjohtoTapahtuma } from "@/components/tyonjohto/yleiskuva/tapahtumavirta";
 import { AvoimetHavainnot } from "@/components/tyonjohto/yleiskuva/avoimet-havainnot";
+import { PoikkeamatNakyma } from "@/components/poikkeamat/poikkeamat-nakyma";
+import { haeAktiivisetPoikkeamatOrganisaatiolle } from "@/lib/poikkeamat";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -39,11 +41,11 @@ async function haeKuljettajaTilat(organisaatioId: string): Promise<KuljettajaSta
   const viimeisinAlue = new Map<string, RawKuljettajaTapahtuma>(); const viimeisinTyovaline = new Map<string, Map<string, RawKuljettajaTapahtuma>>();
   for (const tapahtuma of (tapahtumat ?? []) as unknown as RawKuljettajaTapahtuma[]) {
     if (tapahtuma.tyyppi === "hoitoalue_saapui" || tapahtuma.tyyppi === "hoitoalue_poistui") { if (!viimeisinAlue.has(tapahtuma.kayttaja_id)) viimeisinAlue.set(tapahtuma.kayttaja_id, tapahtuma); continue; }
-    if (!tapahtuma.tyovalinetyyppi_id) continue; let kayttajanValineet = viimeisinTyovaline.get(tapahtuma.kayttaja_id); if (!kayttajanValineet) { kayttajanValineet = new Map(); viimeisinTyovaline.set(tapahtuma.kayttaja_id, kayttajanValineet); } if (!kayttajanValineet.has(tapahtuma.tyovalinetyyppi_id)) kayttajanValineet.set(tapahtuma.tyovalinetyyppi_id, tapahtuma);
+    if (!tapahtuma.tyovalinetyyppi_id) continue; let kayttajanValineet = viimeisinTyovaline.get(tapahtuma.kayttaja_id); if (!kayttajanValineet) { kayttajanValineet = new Map(); viimeisinTyovaline.set(tapahtuma.kayttaja_id, kayttajanValineet); } if (!kayttajanValineet.has(tapahtuma.tyovalinetyyppi_id)) kayttajanValineet.set(tapahtuma.tyovalineyyppi_id ?? tapahtuma.tyovalinetyyppi_id, tapahtuma);
   }
   return kayttajat.map((kayttaja) => { const alueTapahtuma = viimeisinAlue.get(kayttaja.id); const valineet = viimeisinTyovaline.get(kayttaja.id); const auraTapahtuma = valineet ? [...valineet.values()].find((t) => t.tyovalinetyypit?.nimi === "Aura") : undefined; const hiekoitinTapahtuma = valineet ? [...valineet.values()].find((t) => t.tyovalinetyypit?.nimi === "Hiekoitin") : undefined; return { id: kayttaja.id, nimi: kayttaja.nimi, tyossa: alueTapahtuma?.tyyppi === "hoitoalue_saapui", nykyinenHoitoalue: alueTapahtuma?.tyyppi === "hoitoalue_saapui" ? alueTapahtuma.hoitoalueet?.nimi ?? null : null, aura: auraTapahtuma ? auraTapahtuma.tyyppi === "tyovaline_on" : null, hiekoitin: hiekoitinTapahtuma ? hiekoitinTapahtuma.tyyppi === "tyovaline_on" : null }; });
 }
 export default async function YleiskuvaPage() {
-  await vaadiRooli(["tyonjohto", "admin"]); const organisaatioId = await haeOrganisaatioId(); const [tapahtumat, kuljettajat] = organisaatioId ? await Promise.all([haeTapahtumavirta(organisaatioId), haeKuljettajaTilat(organisaatioId)]) : [[], []];
-  return <div className="flex flex-col gap-6"><div className="grid grid-cols-1 gap-6 lg:grid-cols-3"><div className="lg:col-span-2"><UrakkaSummary /></div><div className="lg:col-span-1"><KuljettajaStatus kuljettajat={kuljettajat} /></div></div><div className="grid grid-cols-1 gap-6 lg:grid-cols-3"><div className="lg:col-span-2"><OperatiivinenKartta /></div><div className="lg:col-span-1"><AvoimetHavainnot /></div></div><Tapahtumavirta tapahtumat={tapahtumat} /></div>;
+  await vaadiRooli(["tyonjohto", "admin"]); const organisaatioId = await haeOrganisaatioId(); const [tapahtumat, kuljettajat, poikkeamat] = organisaatioId ? await Promise.all([haeTapahtumavirta(organisaatioId), haeKuljettajaTilat(organisaatioId), haeAktiivisetPoikkeamatOrganisaatiolle(organisaatioId)]) : [[], [], []];
+  return <div className="flex flex-col gap-6"><div className="grid grid-cols-1 gap-6 lg:grid-cols-3"><div className="lg:col-span-2"><UrakkaSummary /></div><div className="lg:col-span-1"><KuljettajaStatus kuljettajat={kuljettajat} /></div></div><div className="grid grid-cols-1 gap-6 lg:grid-cols-3"><div className="lg:col-span-2"><OperatiivinenKartta /></div><div className="lg:col-span-1"><AvoimetHavainnot /></div></div><PoikkeamatNakyma poikkeamat={poikkeamat} hallinta /><Tapahtumavirta tapahtumat={tapahtumat} /></div>;
 }
