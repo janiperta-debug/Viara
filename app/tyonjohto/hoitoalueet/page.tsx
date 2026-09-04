@@ -77,6 +77,7 @@ export default async function HoitoalueetPage() {
       asiakkuusNimi: asiakkuusNimet.get(row.asiakkuus_id)!,
       lat: point?.lat ?? null,
       lng: point?.lng ?? null,
+      rajaGeoJson: row.raja_geojson,
     }];
   });
 
