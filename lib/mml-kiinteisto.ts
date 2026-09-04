@@ -112,7 +112,7 @@ export async function haeMmlOsoitteet(osoite: string): Promise<MmlOsoiteKohde[]>
   url.searchParams.set("crs", "CRS84");
   url.searchParams.set("lang", "fi");
   url.searchParams.set("size", "5");
-  url.searchParams.set("options", "nowildcard,use_any_codelist_lang_match");
+  url.searchParams.set("options", "nowildcard,use_any_codelist_lang_match,use_postal_code");
 
   const data = await mmlFetch(url);
   return (data.features ?? []).map((feature, index) => {
