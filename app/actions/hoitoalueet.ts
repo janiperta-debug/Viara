@@ -2,7 +2,12 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { haeMmlHoitoalueKohteet, haeMmlKiinteistotunnuksella } from "@/lib/mml-kiinteisto";
+import {
+  haeMmlHoitoalueKohteet,
+  haeMmlKiinteistotunnuksella,
+  haeMmlOsoitteet,
+  type MmlOsoiteKohde,
+} from "@/lib/mml-kiinteisto";
 import { haeOmaKayttajaRooliTiukasti } from "@/lib/oma-kayttaja";
 
 type Tulos =
@@ -35,6 +40,24 @@ async function haeOmaOrganisaatio(): Promise<
 function validoiTeksti(value: string, max = 200): string | null {
   const result = value.trim();
   return result && result.length <= max ? result : null;
+}
+
+export async function haeOsoiteEhdotukset(osoite: string): Promise<
+  | { ok: true; kohteet: MmlOsoiteKohde[] }
+  | { ok: false; virhe: string }
+> {
+  const hallinta = await haeOmaOrganisaatio();
+  if (!hallinta.ok) return hallinta;
+
+  const haku = validoiTeksti(osoite);
+  if (!haku || haku.length < 3) return { ok: true, kohteet: [] };
+
+  try {
+    return { ok: true, kohteet: await haeMmlOsoitteet(haku) };
+  } catch (error) {
+    console.error("MML-osoite-ehdotusten haku epäonnistui", error);
+    return { ok: false, virhe: "Osoitteiden haku Maanmittauslaitokselta epäonnistui." };
+  }
 }
 
 export async function haeHoitoalueKohteet(input: {
@@ -113,7 +136,7 @@ export async function luoHoitoalue(input: {
     .single();
 
   if (error || !data) {
-    return { ok: false, virhe: "Hoitoalueen luonti epäonnistyi." };
+    return { ok: false, virhe: "Hoitoalueen luonti epäonnistui." };
   }
 
   return { ok: true, hoitoalueId: data.id };
