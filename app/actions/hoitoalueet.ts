@@ -2,7 +2,7 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { haeMmlHoitoalueKohteet } from "@/lib/mml-kiinteisto";
+import { haeMmlHoitoalueKohteet, haeMmlKiinteistotunnuksella } from "@/lib/mml-kiinteisto";
 import { haeOmaKayttajaRooliTiukasti } from "@/lib/oma-kayttaja";
 
 type Tulos =
@@ -39,6 +39,7 @@ function validoiTeksti(value: string, max = 200): string | null {
 
 export async function haeHoitoalueKohteet(input: {
   osoite: string;
+  kiinteistotunnus?: string;
 }): Promise<
   | { ok: true; kohteet: Awaited<ReturnType<typeof haeMmlHoitoalueKohteet>> }
   | { ok: false; virhe: string }
@@ -46,15 +47,23 @@ export async function haeHoitoalueKohteet(input: {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
 
+  const tunnus = validoiTeksti(input.kiinteistotunnus ?? "");
   const osoite = validoiTeksti(input.osoite);
-  if (!osoite) return { ok: false, virhe: "Anna haettava osoite." };
+  if (!tunnus && !osoite) return { ok: false, virhe: "Anna osoite tai kiinteistötunnus." };
 
   try {
-    const kohteet = await haeMmlHoitoalueKohteet(osoite);
-    if (kohteet.length === 0) {
-      return { ok: false, virhe: "Osoitteelle ei löytynyt Maanmittauslaitoksen aineistosta kiinteistöä." };
+    if (tunnus) {
+      const kohde = await haeMmlKiinteistotunnuksella(tunnus);
+      if (!kohde.rajaGeoJson) return { ok: false, virhe: "Kiinteistötunnukselle ei löytynyt kiinteistörajaa." };
+      return { ok: true, kohteet: [kohde] };
     }
-    return { ok: true, kohteet };
+
+    const kohteet = await haeMmlHoitoalueKohteet(osoite!);
+    const rajalliset = kohteet.filter((kohde) => kohde.rajaGeoJson);
+    if (rajalliset.length === 0) {
+      return { ok: false, virhe: "Osoitteelle ei löytynyt Maanmittauslaitoksen aineistosta kiinteistörajaa." };
+    }
+    return { ok: true, kohteet: rajalliset };
   } catch (error) {
     console.error("MML-hoitoaluehaku epäonnistui", error);
     return { ok: false, virhe: "Kiinteistön haku Maanmittauslaitokselta epäonnistui. Tarkista MML-rajapinnan asetukset." };
@@ -104,7 +113,7 @@ export async function luoHoitoalue(input: {
     .single();
 
   if (error || !data) {
-    return { ok: false, virhe: "Hoitoalueen luonti epäonnistui." };
+    return { ok: false, virhe: "Hoitoalueen luonti epäonnistyi." };
   }
 
   return { ok: true, hoitoalueId: data.id };
