@@ -79,6 +79,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) 
   function valitseOsoite(kohde: MmlOsoiteKohde) {
     setOsoite(kohde.osoite);
     setKiinteistotunnus(kohde.kiinteistotunnus ?? "");
+    if (!nimi.trim()) setNimi(kohde.osoite);
     setOsoiteEhdotukset([]);
     haeKohde({ osoite: kohde.osoite, kiinteistotunnus: kohde.kiinteistotunnus ?? "" });
   }
@@ -86,7 +87,10 @@ export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) 
   function valitseKohde(kohde: MmlHoitoalueKohde) {
     setValittu(kohde);
     if (kohde.kiinteistotunnus) setKiinteistotunnus(kohde.kiinteistotunnus);
-    if (kohde.osoite) setOsoite(kohde.osoite);
+    if (kohde.osoite) {
+      setOsoite(kohde.osoite);
+      if (!nimi.trim()) setNimi(kohde.osoite);
+    }
   }
 
   function tallenna() {
@@ -128,7 +132,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) 
           <div className="mt-5 space-y-4">
             <div className="relative z-30 space-y-4">
               <label className="block"><span className="mb-1.5 block text-sm font-medium text-foreground">Asiakkuus</span><select value={asiakkuusId} onChange={(e) => setAsiakkuusId(e.target.value)} className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">{asiakkuudet.map((a) => <option key={a.id} value={a.id}>{a.nimi}</option>)}</select></label>
-              <label className="block"><span className="mb-1.5 block text-sm font-medium text-foreground">Hoitoalueen nimi</span><input value={nimi} onChange={(e) => setNimi(e.target.value)} maxLength={200} placeholder="Esim. As Oy Mäntyrinne" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
+              <label className="block"><span className="mb-1.5 block text-sm font-medium text-foreground">Hoitoalueen nimi <span className="font-normal text-muted">(esitäytetään osoitteella)</span></span><input value={nimi} onChange={(e) => setNimi(e.target.value)} maxLength={200} placeholder="Esim. As Oy Mäntyrinne" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
 
               <div className="relative rounded-2xl border border-border bg-white/60 p-4">
                 <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-foreground">Etsi kiinteistö</p><p className="mt-0.5 text-xs text-muted">Kirjoita osoitetta ja valitse Maanmittauslaitoksen ehdotuksesta. Kiinteistötunnuksella voit tehdä tarkan haun.</p></div><Search className="h-4 w-4 text-primary" /></div>
