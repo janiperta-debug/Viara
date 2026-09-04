@@ -1,4 +1,5 @@
 import { haeAsiakasTiedot } from "@/lib/asiakas-data";
+import { haeAktiivisetPoikkeamatAsiakkuudelle } from "@/lib/poikkeamat";
 import { HoitoalueetNakyma } from "@/components/asiakas/hoitoalueet-nakyma";
 
 export default async function AsiakasHoitoalueetPage() {
@@ -28,5 +29,6 @@ export default async function AsiakasHoitoalueetPage() {
     );
   }
 
-  return <HoitoalueetNakyma alueet={tiedot.alueet} />;
+  const poikkeamat = await haeAktiivisetPoikkeamatAsiakkuudelle(tiedot.asiakkuusId);
+  return <HoitoalueetNakyma alueet={tiedot.alueet} poikkeamat={poikkeamat} />;
 }
