@@ -6,7 +6,7 @@ import { type ViaraRooli, voikoVaihtaaNakymaa } from "@/lib/nakymat";
 type Kohde = "havainnot" | "profiili";
 
 export function TopBar({
-  notifications = 3,
+  notifications = 0,
   active,
   rooli,
 }: {
@@ -43,7 +43,7 @@ export function TopBar({
         )}
         <Link
           href="/havainnot"
-          aria-label={`Havainnot, ${notifications} uutta`}
+          aria-label={`Havainnot${notifications > 0 ? `, ${notifications} uutta` : ""}`}
           aria-current={active === "havainnot" ? "page" : undefined}
           className={`metal-card relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
             active === "havainnot" ? "text-primary" : "text-foreground"
