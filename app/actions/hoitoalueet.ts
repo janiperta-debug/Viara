@@ -2,6 +2,7 @@
 
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { haeMmlHoitoalueKohteet } from "@/lib/mml-kiinteisto";
 import { haeOmaKayttajaRooliTiukasti } from "@/lib/oma-kayttaja";
 
 type Tulos =
@@ -36,11 +37,36 @@ function validoiTeksti(value: string, max = 200): string | null {
   return result && result.length <= max ? result : null;
 }
 
+export async function haeHoitoalueKohteet(input: {
+  osoite: string;
+}): Promise<
+  | { ok: true; kohteet: Awaited<ReturnType<typeof haeMmlHoitoalueKohteet>> }
+  | { ok: false; virhe: string }
+> {
+  const hallinta = await haeOmaOrganisaatio();
+  if (!hallinta.ok) return hallinta;
+
+  const osoite = validoiTeksti(input.osoite);
+  if (!osoite) return { ok: false, virhe: "Anna haettava osoite." };
+
+  try {
+    const kohteet = await haeMmlHoitoalueKohteet(osoite);
+    if (kohteet.length === 0) {
+      return { ok: false, virhe: "Osoitteelle ei löytynyt Maanmittauslaitoksen aineistosta kiinteistöä." };
+    }
+    return { ok: true, kohteet };
+  } catch (error) {
+    console.error("MML-hoitoaluehaku epäonnistui", error);
+    return { ok: false, virhe: "Kiinteistön haku Maanmittauslaitokselta epäonnistui. Tarkista MML-rajapinnan asetukset." };
+  }
+}
+
 export async function luoHoitoalue(input: {
   nimi: string;
   osoite: string;
   kiinteistotunnus: string;
   asiakkuusId: string;
+  rajaGeoJson?: unknown;
 }): Promise<Tulos> {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
@@ -51,6 +77,7 @@ export async function luoHoitoalue(input: {
   if (!nimi) return { ok: false, virhe: "Hoitoalueen nimi ei kelpaa." };
   if (!osoite) return { ok: false, virhe: "Osoite ei kelpaa." };
   if (!input.asiakkuusId) return { ok: false, virhe: "Valitse asiakkuus." };
+  if (!input.rajaGeoJson) return { ok: false, virhe: "Hyväksy ensin Maanmittauslaitokselta haettu kiinteistöraja." };
 
   const admin = createSupabaseAdminClient();
   const { data: asiakkuus, error: asiakkuusError } = await admin
@@ -71,6 +98,7 @@ export async function luoHoitoalue(input: {
       osoite,
       kiinteistotunnus: kiinteistotunnus || null,
       asiakkuus_id: asiakkuus.id,
+      raja_geojson: input.rajaGeoJson,
     })
     .select("id")
     .single();
@@ -84,7 +112,7 @@ export async function luoHoitoalue(input: {
 
 export async function paivitaHoitoalue(
   hoitoalueId: string,
-  input: { nimi: string; osoite: string; kiinteistotunnus: string; asiakkuusId: string }
+  input: { nimi: string; osoite: string; kiinteistotunnus: string; asiakkuusId: string; rajaGeoJson?: unknown }
 ): Promise<Tulos> {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
@@ -114,14 +142,17 @@ export async function paivitaHoitoalue(
     .maybeSingle();
   if (!kohde) return { ok: false, virhe: "Hoitoaluetta ei löytynyt omasta organisaatiosta." };
 
+  const update: Record<string, unknown> = {
+    nimi,
+    osoite,
+    kiinteistotunnus: kiinteistotunnus || null,
+    asiakkuus_id: asiakkuus.id,
+  };
+  if (input.rajaGeoJson) update.raja_geojson = input.rajaGeoJson;
+
   const { error } = await admin
     .from("hoitoalueet")
-    .update({
-      nimi,
-      osoite,
-      kiinteistotunnus: kiinteistotunnus || null,
-      asiakkuus_id: asiakkuus.id,
-    })
+    .update(update)
     .eq("id", hoitoalueId);
 
   if (error) return { ok: false, virhe: "Hoitoalueen päivittäminen epäonnistui." };
