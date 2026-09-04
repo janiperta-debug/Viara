@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import type { Map as LeafletMap, Polygon } from "leaflet";
+import type { CircleMarker, Map as LeafletMap, Polygon } from "leaflet";
 
 export type RajaPiste = { lat: number; lng: number };
 
@@ -15,7 +15,7 @@ export function HoitoalueRajaKartta({ pisteet, onMuuta }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LeafletMap | null>(null);
   const polygonRef = useRef<Polygon | null>(null);
-  const markersRef = useRef<L.CircleMarker[]>([]);
+  const markersRef = useRef<CircleMarker[]>([]);
   const pisteetRef = useRef(pisteet);
   const onMuutaRef = useRef(onMuuta);
 
@@ -34,7 +34,7 @@ export function HoitoalueRajaKartta({ pisteet, onMuuta }: Props) {
       const map = L.map(containerRef.current, {
         zoomControl: true,
         scrollWheelZoom: true,
-        doubleClickZoom: false,
+        doubleClickZoom: true,
       }).setView([60.6305, 24.861], 13);
       mapRef.current = map;
 
@@ -45,15 +45,6 @@ export function HoitoalueRajaKartta({ pisteet, onMuuta }: Props) {
 
       map.on("click", (event) => {
         const next = [...pisteetRef.current, { lat: event.latlng.lat, lng: event.latlng.lng }];
-        onMuutaRef.current(next);
-      });
-
-      map.on("dblclick", (event) => {
-        L.DomEvent.stopPropagation(event);
-        L.DomEvent.preventDefault(event);
-        const current = pisteetRef.current;
-        if (current.length < 3) return;
-        const next = current.slice(0, -1);
         onMuutaRef.current(next);
       });
     })();
