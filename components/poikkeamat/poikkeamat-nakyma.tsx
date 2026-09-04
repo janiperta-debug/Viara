@@ -27,9 +27,9 @@ export function PoikkeamatNakyma({
 }) {
   const [pending, startTransition] = useTransition();
 
-  function ratkaise(hoitoalueId: string) {
+  function ratkaise(poikkeamaId: string) {
     startTransition(async () => {
-      await ratkaisePoikkeama({ hoitoalueId });
+      await ratkaisePoikkeama({ poikkeamaId });
       window.location.reload();
     });
   }
@@ -64,7 +64,7 @@ export function PoikkeamatNakyma({
                 <button
                   type="button"
                   disabled={pending}
-                  onClick={() => ratkaise(poikkeama.hoitoalueId)}
+                  onClick={() => ratkaise(poikkeama.id)}
                   className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-white px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/20 disabled:cursor-wait disabled:opacity-60"
                 >
                   <Check className="h-4 w-4" />
