@@ -64,8 +64,8 @@ export function MmlHoitoalueEsikatselu({ geometry }: Props) {
   }, [geometry]);
 
   return (
-    <div className="h-[320px] w-full overflow-hidden rounded-xl border border-border">
-      <div ref={containerRef} className="h-full w-full" role="application" aria-label="Maanmittauslaitoksen kiinteistörajan esikatselu" />
+    <div className="relative z-0 isolate h-[320px] w-full overflow-hidden rounded-xl border border-border">
+      <div ref={containerRef} className="relative z-0 h-full w-full" role="application" aria-label="Maanmittauslaitoksen kiinteistörajan esikatselu" />
     </div>
   );
 }
