@@ -76,8 +76,8 @@ export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="lisaa-hoitoalue-otsikko">
-      <button type="button" aria-label="Sulje" onClick={onClose} disabled={odottaa || hakee} className="absolute inset-0 bg-foreground/40 backdrop-blur-sm" />
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="lisaa-hoitoalue-otsikko">
+      <button type="button" aria-label="Sulje" onClick={onClose} disabled={odottaa || hakee} className="absolute inset-0 z-0 bg-foreground/40 backdrop-blur-sm" />
       <div className="metal-card relative z-10 my-4 w-full max-w-2xl overflow-hidden rounded-2xl p-6">
         <div className="relative z-20 flex items-start justify-between gap-4 bg-inherit">
           <div>
