@@ -108,10 +108,12 @@ export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) 
     });
   }
 
+  const osoitehakuAuki = osoite.trim().length >= 3 && !kiinteistotunnus.trim() && (osoiteEhdotukset.length > 0 || ehdotuksiaLadataan);
+
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true" aria-labelledby="lisaa-hoitoalue-otsikko">
       <button type="button" aria-label="Sulje" onClick={onClose} disabled={odottaa || hakee} className="absolute inset-0 z-0 bg-foreground/40 backdrop-blur-sm" />
-      <div className="metal-card relative z-10 my-4 w-full max-w-2xl overflow-hidden rounded-2xl p-6">
+      <div className="metal-card relative z-10 my-4 w-full max-w-2xl rounded-2xl p-6">
         <div className="relative z-20 flex items-start justify-between gap-4 bg-inherit">
           <div>
             <h2 id="lisaa-hoitoalue-otsikko" className="text-lg font-semibold text-foreground">Lisää hoitoalue</h2>
@@ -124,29 +126,29 @@ export function LisaaHoitoalueModaali({ asiakkuudet, onClose, onSaved }: Props) 
           <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 px-4 py-4 text-sm text-muted">Luo ensin vähintään yksi asiakkuus. Hoitoaluetta ei voi luoda ilman asiakkuutta.</div>
         ) : (
           <div className="mt-5 space-y-4">
-            <div className="relative z-10 space-y-4">
+            <div className="relative z-30 space-y-4">
               <label className="block"><span className="mb-1.5 block text-sm font-medium text-foreground">Asiakkuus</span><select value={asiakkuusId} onChange={(e) => setAsiakkuusId(e.target.value)} className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">{asiakkuudet.map((a) => <option key={a.id} value={a.id}>{a.nimi}</option>)}</select></label>
               <label className="block"><span className="mb-1.5 block text-sm font-medium text-foreground">Hoitoalueen nimi</span><input value={nimi} onChange={(e) => setNimi(e.target.value)} maxLength={200} placeholder="Esim. As Oy Mäntyrinne" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
 
-              <div className="rounded-2xl border border-border bg-white/60 p-4">
+              <div className="relative rounded-2xl border border-border bg-white/60 p-4">
                 <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-foreground">Etsi kiinteistö</p><p className="mt-0.5 text-xs text-muted">Kirjoita osoitetta ja valitse Maanmittauslaitoksen ehdotuksesta. Kiinteistötunnuksella voit tehdä tarkan haun.</p></div><Search className="h-4 w-4 text-primary" /></div>
                 <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-                  <label className="relative block"><span className="mb-1.5 block text-xs font-medium text-muted">Osoite</span><input value={osoite} onChange={(e) => { setOsoite(e.target.value); setKiinteistotunnus(""); setValittu(null); setKohteet([]); setVirhe(null); }} maxLength={200} placeholder="Keskuskatu 12, 05800 Hyvinkää" autoComplete="off" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                    {(osoiteEhdotukset.length > 0 || ehdotuksiaLadataan) && (
-                      <div className="absolute left-0 right-0 top-full z-[1100] mt-1 overflow-hidden rounded-xl border border-border bg-white shadow-xl">
-                        {ehdotuksiaLadataan && <div className="flex items-center gap-2 px-3.5 py-3 text-xs text-muted"><LoaderCircle className="h-4 w-4 animate-spin" /> Haetaan osoitteita…</div>}
-                        {osoiteEhdotukset.map((kohde) => (
-                          <button key={kohde.id} type="button" onMouseDown={(e) => { e.preventDefault(); valitseOsoite(kohde); }} className="flex w-full items-start gap-3 border-t border-border px-3.5 py-3 text-left hover:bg-primary/5">
-                            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                            <span className="min-w-0"><span className="block text-sm font-medium text-foreground">{kohde.osoite}</span>{kohde.kiinteistotunnus && <span className="mt-0.5 block text-xs text-muted">Kiinteistötunnus: {kohde.kiinteistotunnus}</span>}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </label>
+                  <label className="block"><span className="mb-1.5 block text-xs font-medium text-muted">Osoite</span><input value={osoite} onChange={(e) => { setOsoite(e.target.value); setKiinteistotunnus(""); setValittu(null); setKohteet([]); setVirhe(null); }} maxLength={200} placeholder="Keskuskatu 12, 05800 Hyvinkää" autoComplete="off" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
                   <label className="block"><span className="mb-1.5 block text-xs font-medium text-muted">Kiinteistötunnus <span className="font-normal">(valinnainen)</span></span><input value={kiinteistotunnus} onChange={(e) => { setKiinteistotunnus(e.target.value); setValittu(null); }} maxLength={200} placeholder="106-1-2-3" className="w-full rounded-xl border border-border bg-white px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" /></label>
                   <button type="button" onClick={() => haeKohde()} disabled={hakee || odottaa || (!osoite.trim() && !kiinteistotunnus.trim())} className="mt-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{hakee ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} Hae</button>
                 </div>
+
+                {osoitehakuAuki && (
+                  <div className="mt-3 overflow-hidden rounded-xl border border-border bg-white shadow-lg">
+                    {ehdotuksiaLadataan && <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted"><LoaderCircle className="h-4 w-4 animate-spin" /> Haetaan osoitteita…</div>}
+                    {osoiteEhdotukset.map((kohde) => (
+                      <button key={kohde.id} type="button" onMouseDown={(e) => { e.preventDefault(); valitseOsoite(kohde); }} className="flex w-full items-start gap-3 border-t border-border px-4 py-3.5 text-left transition first:border-t-0 hover:bg-primary/5">
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span className="min-w-0"><span className="block text-sm font-medium text-foreground">{kohde.osoite}</span>{kohde.kiinteistotunnus && <span className="mt-0.5 block text-xs text-muted">Kiinteistötunnus: {kohde.kiinteistotunnus}</span>}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {kohteet.length > 1 && <div className="space-y-2"> <p className="text-sm font-medium text-foreground">Valitse löydetyistä kohteista</p>{kohteet.map((kohde) => <button key={kohde.id} type="button" onClick={() => valitseKohde(kohde)} className={`w-full rounded-xl border px-4 py-3 text-left transition ${valittu?.id === kohde.id ? "border-primary bg-primary/5" : "border-border bg-white hover:border-primary/40"}`}><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium text-foreground">{kohde.osoite || "Kiinteistö"}</p><p className="mt-1 text-xs text-muted">Kiinteistötunnus: {kohde.kiinteistotunnus ?? "Ei tunnusta"}</p></div>{valittu?.id === kohde.id && <Check className="h-5 w-5 shrink-0 text-primary" />}</div></button>)}</div>}
