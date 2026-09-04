@@ -42,13 +42,16 @@ export function MmlHoitoalueEsikatselu({ geometry }: Props) {
   }, []);
 
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
     let cancelled = false;
 
     (async () => {
       const L = (await import("leaflet")).default;
-      if (cancelled) return;
+      while (!mapRef.current && !cancelled) {
+        await new Promise((resolve) => window.requestAnimationFrame(resolve));
+      }
+      const map = mapRef.current;
+      if (!map || cancelled) return;
+
       layerRef.current?.remove();
       const layer = L.geoJSON(geometry as never, {
         style: { color: "#0e7c86", weight: 3, fillOpacity: 0.18 },
