@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { Search, Plus, MapPin, Building2, Pencil, LoaderCircle } from "lucide-react";
+import { Search, Plus, MapPin, Building2, Pencil } from "lucide-react";
 import { LisaaHoitoalueModaali } from "./lisaa-hoitoalue-modaali";
 
 const HoitoalueKartta = dynamic(() => import("./hoitoalue-kartta").then((m) => m.HoitoalueKartta), {
@@ -29,6 +29,7 @@ export function HoitoalueetNakyma({ hoitoalueet, asiakkuudet }: Props) {
   const [haku, setHaku] = useState("");
   const [asiakkuusSuodatin, setAsiakkuusSuodatin] = useState("kaikki");
   const [modaaliAuki, setModaaliAuki] = useState(false);
+  const [muokattava, setMuokattava] = useState<HoitoalueRivi | null>(null);
 
   useEffect(() => {
     if (valittuId && hoitoalueet.some((a) => a.id === valittuId)) return;
@@ -50,7 +51,7 @@ export function HoitoalueetNakyma({ hoitoalueet, asiakkuudet }: Props) {
           <h1 className="text-2xl font-semibold text-foreground">Hoitoalueet</h1>
           <p className="text-sm text-muted">Hallitse hoitoalueita ja niiden asiakkuuksia</p>
         </div>
-        <button type="button" onClick={() => setModaaliAuki(true)} disabled={asiakkuudet.length === 0} className="btn-primary flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50">
+        <button type="button" onClick={() => { setMuokattava(null); setModaaliAuki(true); }} disabled={asiakkuudet.length === 0} className="btn-primary flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50">
           <Plus className="h-5 w-5" />
           Lisää hoitoalue
         </button>
@@ -101,7 +102,10 @@ export function HoitoalueetNakyma({ hoitoalueet, asiakkuudet }: Props) {
                   <h2 className="text-lg font-semibold text-foreground">{valittu.nimi}</h2>
                   <p className="mt-1 flex items-start gap-1.5 text-sm text-muted"><MapPin className="mt-0.5 h-4 w-4 shrink-0" />{valittu.osoite}</p>
                 </div>
-                <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Hoitoalue</span>
+                <button type="button" onClick={() => { setMuokattava(valittu); setModaaliAuki(true); }} disabled={asiakkuudet.length === 0} className="flex h-9 shrink-0 items-center gap-2 rounded-lg border border-border bg-white px-3 text-sm font-medium text-foreground hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50" title="Muokkaa hoitoaluetta">
+                  <Pencil className="h-4 w-4" />
+                  Muokkaa
+                </button>
               </div>
               <div className="mt-5 rounded-xl border border-border/60 bg-white/60 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted">Asiakkuus</p>
@@ -119,7 +123,7 @@ export function HoitoalueetNakyma({ hoitoalueet, asiakkuudet }: Props) {
         </aside>
       </div>
 
-      {modaaliAuki && <LisaaHoitoalueModaali asiakkuudet={asiakkuudet} onClose={() => setModaaliAuki(false)} onSaved={() => { setModaaliAuki(false); window.location.reload(); }} />}
+      {modaaliAuki && <LisaaHoitoalueModaali asiakkuudet={asiakkuudet} muokattava={muokattava} onClose={() => { setModaaliAuki(false); setMuokattava(null); }} onSaved={() => { setModaaliAuki(false); setMuokattava(null); window.location.reload(); }} />}
     </div>
   );
 }
