@@ -13,7 +13,7 @@ type Muokattava = {
   osoite: string;
   kiinteistotunnus: string | null;
   asiakkuusId: string;
-  rajaGeoJson: unknown;
+  rajaGeoJson: MmlHoitoalueKohde["rajaGeoJson"];
 };
 type Props = { asiakkuudet: Asiakkuus[]; muokattava?: Muokattava | null; onClose: () => void; onSaved: () => void };
 
@@ -117,7 +117,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
     }
   }
 
-  const rajaGeoJson = valittu?.rajaGeoJson ?? (kaytaAlkuperainenRaja ? muokattava?.rajaGeoJson : null);
+  const rajaGeoJson: MmlHoitoalueKohde["rajaGeoJson"] | null = valittu?.rajaGeoJson ?? (kaytaAlkuperainenRaja ? muokattava?.rajaGeoJson ?? null : null);
 
   function tallenna() {
     if (!rajaGeoJson) return;
@@ -188,7 +188,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
               {kohteet.length > 1 && <div className="space-y-2"> <p className="text-sm font-medium text-foreground">Valitse löydetyistä kohteista</p>{kohteet.map((kohde) => <button key={kohde.id} type="button" onClick={() => valitseKohde(kohde)} className={`w-full rounded-xl border px-4 py-3 text-left transition ${valittu?.id === kohde.id ? "border-primary bg-primary/5" : "border-border bg-white hover:border-primary/40"}`}><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium text-foreground">{kohde.osoite || "Kiinteistö"}</p><p className="mt-1 text-xs text-muted">Kiinteistötunnus: {kohde.kiinteistotunnus ?? "Ei tunnusta"}</p></div>{valittu?.id === kohde.id && <Check className="h-5 w-5 shrink-0 text-primary" />}</div></button>)}</div>}
             </div>
 
-            {rajaGeoJson && <div className="relative z-0 isolate space-y-2"><div className="relative z-10 flex items-center gap-2 bg-inherit text-sm font-medium text-foreground"><MapPin className="h-4 w-4 text-primary" /> Kiinteistörajan esikatselu</div><div className="relative z-0 isolate overflow-hidden rounded-xl"><MmlHoitoalueEsikatselu geometry={rajaGeoJson as MmlHoitoalueKohde["rajaGeoJson"]} /></div><div className="relative z-10 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs leading-5 text-muted"><span className="font-medium text-foreground">MML:n kiinteistöraja.</span> Tarkista kartalta, että löydetty kohde vastaa hoidettavaa aluetta. Hyväksytty raja tallennetaan Viaran hoitoalueen GeoJSON-rajaukseksi.</div></div>}
+            {rajaGeoJson && <div className="relative z-0 isolate space-y-2"><div className="relative z-10 flex items-center gap-2 bg-inherit text-sm font-medium text-foreground"><MapPin className="h-4 w-4 text-primary" /> Kiinteistörajan esikatselu</div><div className="relative z-0 isolate overflow-hidden rounded-xl"><MmlHoitoalueEsikatselu geometry={rajaGeoJson} /></div><div className="relative z-10 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs leading-5 text-muted"><span className="font-medium text-foreground">MML:n kiinteistöraja.</span> Tarkista kartalta, että löydetty kohde vastaa hoidettavaa aluetta. Hyväksytty raja tallennetaan Viaran hoitoalueen GeoJSON-rajaukseksi.</div></div>}
 
             {virhe && <p role="alert" className="relative z-20 rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{virhe}</p>}
             <button type="button" onClick={tallenna} disabled={odottaa || hakee || !nimi.trim() || !asiakkuusId || !rajaGeoJson} className="relative z-20 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{odottaa ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {muokkaus ? "Tallenna muutokset" : "Hyväksy ja tallenna hoitoalue"}</button>
