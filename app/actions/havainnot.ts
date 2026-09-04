@@ -9,6 +9,8 @@ type HavaintoTyyppi = (typeof TYYPIT)[number];
 type HavaintoTila = "avoin" | "tyon_alla" | "valmis" | "suljettu";
 type Tulos = { ok: true } | { ok: false; virhe: string };
 
+type HavaintoTapahtuma = "havainto_otettu_tyon_alle" | "havainto_valmis" | "havainto_suljettu";
+
 async function haeNykyinenKayttaja() {
   const supabase = await createSupabaseServerClient();
   const { data: auth } = await supabase.auth.getUser();
@@ -114,11 +116,13 @@ export async function paivitaHavaintoTila(input: { havaintoId: string; tila: Hav
     .maybeSingle();
   if (paivitysError || !paivitetty) return { ok: false, virhe: "Havainto muuttui juuri toisessa käsittelyssä. Päivitä näkymä." };
 
-  const tapahtumaTyyppi = {
+  const tapahtumaTyypit: Partial<Record<HavaintoTila, HavaintoTapahtuma>> = {
     tyon_alla: "havainto_otettu_tyon_alle",
     valmis: "havainto_valmis",
     suljettu: "havainto_suljettu",
-  }[uusiTila] as "havainto_otettu_tyon_alle" | "havainto_valmis" | "havainto_suljettu";
+  };
+  const tapahtumaTyyppi = tapahtumaTyypit[uusiTila];
+  if (!tapahtumaTyyppi) return { ok: false, virhe: "Havainnolle ei löytynyt tapahtumatyyppiä." };
 
   const { error: tapahtumaError } = await admin.from("tapahtumat").insert({
     hoitoalue_id: havainto.hoitoalue_id,
