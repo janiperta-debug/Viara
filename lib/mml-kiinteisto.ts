@@ -19,6 +19,11 @@ type MmlFeatureCollection = {
   features?: MmlFeature[];
 };
 
+type MmlPolygonGeometry = {
+  type: "Polygon" | "MultiPolygon";
+  coordinates: unknown;
+};
+
 export type MmlOsoiteKohde = {
   id: string;
   osoite: string;
@@ -65,12 +70,16 @@ function normalizeKiinteistotunnus(value: string) {
   return /^\d{14}$/.test(digits) ? digits : value.trim();
 }
 
+function isMmlPolygonGeometry(geometry: MmlFeature["geometry"]): geometry is MmlPolygonGeometry {
+  return Boolean(
+    geometry &&
+      (geometry.type === "Polygon" || geometry.type === "MultiPolygon") &&
+      Array.isArray(geometry.coordinates)
+  );
+}
+
 function muodostaRaja(features: MmlFeature[]): GeoJsonGeometry | null {
-  const geometries = features
-    .map((feature) => feature.geometry)
-    .filter((geometry): geometry is { type: "Polygon" | "MultiPolygon"; coordinates: unknown } =>
-      Boolean(geometry) && (geometry.type === "Polygon" || geometry.type === "MultiPolygon") && Array.isArray(geometry.coordinates)
-    );
+  const geometries = features.map((feature) => feature.geometry).filter(isMmlPolygonGeometry);
 
   if (geometries.length === 0) return null;
   if (geometries.length === 1) return geometries[0];
