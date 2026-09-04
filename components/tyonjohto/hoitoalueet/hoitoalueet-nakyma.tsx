@@ -20,6 +20,7 @@ export type HoitoalueRivi = {
   asiakkuusNimi: string;
   lat: number | null;
   lng: number | null;
+  rajaGeoJson: unknown;
 };
 
 type Props = { hoitoalueet: HoitoalueRivi[]; asiakkuudet: Asiakkuus[] };
