@@ -59,18 +59,27 @@ export async function luoPoikkeama(input: { hoitoalueId: string; kuvaus: string 
   return { ok: true };
 }
 
-export async function ratkaisePoikkeama(input: { hoitoalueId: string }): Promise<Tulos> {
+export async function ratkaisePoikkeama(input: { poikkeamaId: string }): Promise<Tulos> {
   const kayttaja = await haeHallintaKayttaja();
   if (!kayttaja) return { ok: false, virhe: "Sinulla ei ole oikeutta ratkaista poikkeamaa." };
 
-  const hoitoalueId = input.hoitoalueId.trim();
-  if (!hoitoalueId) return { ok: false, virhe: "Hoitoaluetta ei ole määritetty." };
+  const poikkeamaId = input.poikkeamaId.trim();
+  if (!poikkeamaId) return { ok: false, virhe: "Poikkeamaa ei ole määritetty." };
 
   const admin = createSupabaseAdminClient();
+  const { data: poikkeama, error: poikkeamaError } = await admin
+    .from("tapahtumat")
+    .select("id, hoitoalue_id, tyyppi")
+    .eq("id", poikkeamaId)
+    .eq("tyyppi", "poikkeama_luotu")
+    .maybeSingle();
+
+  if (poikkeamaError || !poikkeama) return { ok: false, virhe: "Poikkeamaa ei löytynyt." };
+
   const { data: alue, error: alueError } = await admin
     .from("hoitoalueet")
     .select("id, asiakkuudet!inner(organisaatio_id)")
-    .eq("id", hoitoalueId)
+    .eq("id", poikkeama.hoitoalue_id)
     .maybeSingle();
   if (alueError || !alue) return { ok: false, virhe: "Hoitoaluetta ei löytynyt." };
 
@@ -79,25 +88,22 @@ export async function ratkaisePoikkeama(input: { hoitoalueId: string }): Promise
     return { ok: false, virhe: "Hoitoalue ei kuulu organisaatioosi." };
   }
 
-  const { data: viimeisin, error: tapahtumaError } = await admin
+  const { data: ratkaisu, error: ratkaisuError } = await admin
     .from("tapahtumat")
-    .select("tyyppi")
-    .eq("hoitoalue_id", hoitoalueId)
-    .in("tyyppi", ["poikkeama_luotu", "poikkeama_ratkaistu"])
-    .order("aikaleima", { ascending: false })
+    .select("id")
+    .eq("tyyppi", "poikkeama_ratkaistu")
+    .eq("lisatiedot->>poikkeama_id", poikkeamaId)
     .limit(1)
     .maybeSingle();
 
-  if (tapahtumaError) return { ok: false, virhe: "Poikkeaman tilaa ei voitu tarkistaa." };
-  if (!viimeisin || viimeisin.tyyppi !== "poikkeama_luotu") {
-    return { ok: false, virhe: "Hoitoalueella ei ole aktiivista poikkeamaa." };
-  }
+  if (ratkaisuError) return { ok: false, virhe: "Poikkeaman tilaa ei voitu tarkistaa." };
+  if (ratkaisu) return { ok: false, virhe: "Poikkeama on jo ratkaistu." };
 
   const { error } = await admin.from("tapahtumat").insert({
-    hoitoalue_id: hoitoalueId,
+    hoitoalue_id: poikkeama.hoitoalue_id,
     kayttaja_id: kayttaja.id,
     tyyppi: "poikkeama_ratkaistu",
-    lisatiedot: {},
+    lisatiedot: { poikkeama_id: poikkeamaId },
   });
   if (error) return { ok: false, virhe: "Poikkeamaa ei voitu ratkaista." };
 
