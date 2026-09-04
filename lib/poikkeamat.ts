@@ -47,12 +47,24 @@ function poimiKuvaus(lisatiedot: unknown) {
   return "Poikkeamasta ei ole kuvausta.";
 }
 
-function viimeisinPoikkeamaTapahtuma(tapahtumat: PoikkeamaTapahtuma[]) {
-  const viimeiset = new Map<string, PoikkeamaTapahtuma>();
-  for (const tapahtuma of tapahtumat) {
-    if (!viimeiset.has(tapahtuma.hoitoalue_id)) viimeiset.set(tapahtuma.hoitoalue_id, tapahtuma);
-  }
-  return viimeiset;
+function poimiPoikkeamaId(lisatiedot: unknown) {
+  if (!lisatiedot || typeof lisatiedot !== "object") return null;
+  const poikkeamaId = (lisatiedot as Record<string, unknown>).poikkeama_id;
+  return typeof poikkeamaId === "string" && poikkeamaId.trim() ? poikkeamaId : null;
+}
+
+function aktiivisetPoikkeamat(tapahtumat: PoikkeamaTapahtuma[]) {
+  const ratkaistut = new Set(
+    tapahtumat
+      .filter((tapahtuma) => tapahtuma.tyyppi === "poikkeama_ratkaistu")
+      .map((tapahtuma) => poimiPoikkeamaId(tapahtuma.lisatiedot))
+      .filter((id): id is string => Boolean(id)),
+  );
+
+  return tapahtumat.filter(
+    (tapahtuma) =>
+      tapahtuma.tyyppi === "poikkeama_luotu" && !ratkaistut.has(tapahtuma.id),
+  );
 }
 
 export async function haeAktiivisetPoikkeamatOrganisaatiolle(
@@ -97,10 +109,7 @@ async function haeAktiivisetPoikkeamatAlueilta(
 
   if (error || !tapahtumat) return [];
 
-  const viimeiset = viimeisinPoikkeamaTapahtuma(tapahtumat as PoikkeamaTapahtuma[]);
-  const aktiiviset = Array.from(viimeiset.values()).filter(
-    (tapahtuma) => tapahtuma.tyyppi === "poikkeama_luotu",
-  );
+  const aktiiviset = aktiivisetPoikkeamat(tapahtumat as PoikkeamaTapahtuma[]);
   if (aktiiviset.length === 0) return [];
 
   const kayttajaIds = Array.from(
