@@ -30,16 +30,16 @@ export async function haeAsukasHoitoalue(
     .from("tapahtumat")
     .select("hoitoalue_id, tyyppi, aikaleima")
     .eq("hoitoalue_id", alue.id)
-    .in("tyyppi", ["tyo_aloitettu", "tyo_valmis"])
+    .in("tyyppi", ["hoitoalue_saapui", "hoitoalue_poistui"])
     .order("aikaleima", { ascending: false });
 
   if (tapahtumaError) return null;
 
   const viimeisin = tapahtumat?.[0] ?? null;
-  const tila = viimeisin?.tyyppi === "tyo_valmis"
-    ? "valmis"
-    : viimeisin?.tyyppi === "tyo_aloitettu"
-      ? "tyon_alla"
+  const tila = viimeisin?.tyyppi === "hoitoalue_saapui"
+    ? "tyon_alla"
+    : viimeisin?.tyyppi === "hoitoalue_poistui"
+      ? "valmis"
       : "aloittamatta";
   const edistyma = tila === "valmis" ? 100 : tila === "tyon_alla" ? 50 : 0;
 
@@ -167,7 +167,7 @@ export async function haeAsukasHoitoalue(
     tila,
     edistyma,
     viimeisinTapahtuma: viimeisin
-      ? `${viimeisin.tyyppi === "tyo_valmis" ? "Työ valmis" : "Työ aloitettu"} ${aika(viimeisin.aikaleima) ?? ""}`.trim()
+      ? `${viimeisin.tyyppi === "hoitoalue_saapui" ? "Työ aloitettu" : "Työ valmis"} ${aika(viimeisin.aikaleima) ?? ""}`.trim()
       : null,
     havainnot: alueHavainnot,
   };
