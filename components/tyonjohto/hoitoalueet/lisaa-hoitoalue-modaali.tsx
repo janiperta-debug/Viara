@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
-import { Check, LoaderCircle, MapPin, Search, X } from "lucide-react";
+import { Check, LoaderCircle, MapPin, Minus, Plus, Search, X } from "lucide-react";
 import { haeHoitoalueKohteet, haeOsoiteEhdotukset, luoHoitoalue, paivitaHoitoalue } from "@/app/actions/hoitoalueet";
 import type { MmlHoitoalueKohde, MmlOsoiteKohde } from "@/lib/mml-kiinteisto";
 
@@ -14,8 +14,12 @@ type Muokattava = {
   kiinteistotunnus: string | null;
   asiakkuusId: string;
   rajaGeoJson: MmlHoitoalueKohde["rajaGeoJson"];
+  lasnaoloalueMetrit: number;
 };
 type Props = { asiakkuudet: Asiakkuus[]; muokattava?: Muokattava | null; onClose: () => void; onSaved: () => void };
+
+const LASNAOLOALUE_MIN = -50;
+const LASNAOLOALUE_MAX = 50;
 
 const MmlHoitoalueEsikatselu = dynamic(
   () => import("./mml-hoitoalue-esikatselu").then((m) => m.MmlHoitoalueEsikatselu),
@@ -30,6 +34,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
   const [osoite, setOsoite] = useState("");
   const [kiinteistotunnus, setKiinteistotunnus] = useState("");
   const [asiakkuusId, setAsiakkuusId] = useState(asiakkuudet[0]?.id ?? "");
+  const [lasnaoloalueMetrit, setLasnaoloalueMetrit] = useState(0);
   const [kohteet, setKohteet] = useState<MmlHoitoalueKohde[]>([]);
   const [osoiteEhdotukset, setOsoiteEhdotukset] = useState<MmlOsoiteKohde[]>([]);
   const [valittu, setValittu] = useState<MmlHoitoalueKohde | null>(null);
@@ -41,6 +46,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
     setOsoite(muokattava?.osoite ?? "");
     setKiinteistotunnus(muokattava?.kiinteistotunnus ?? "");
     setAsiakkuusId(muokattava?.asiakkuusId ?? asiakkuudet[0]?.id ?? "");
+    setLasnaoloalueMetrit(muokattava?.lasnaoloalueMetrit ?? 0);
     setKohteet([]);
     setOsoiteEhdotukset([]);
     setValittu(null);
@@ -119,6 +125,10 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
 
   const rajaGeoJson: MmlHoitoalueKohde["rajaGeoJson"] | null = valittu?.rajaGeoJson ?? (kaytaAlkuperainenRaja ? muokattava?.rajaGeoJson ?? null : null);
 
+  function muutaLasnaoloaluetta(delta: number) {
+    setLasnaoloalueMetrit((arvo) => Math.max(LASNAOLOALUE_MIN, Math.min(LASNAOLOALUE_MAX, arvo + delta)));
+  }
+
   function tallenna() {
     if (!rajaGeoJson) return;
     setVirhe(null);
@@ -129,6 +139,7 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
         kiinteistotunnus: valittu?.kiinteistotunnus ?? kiinteistotunnus,
         asiakkuusId,
         rajaGeoJson,
+        lasnaoloalueMetrit,
       };
       const tulos = muokattava
         ? await paivitaHoitoalue(muokattava.id, input)
@@ -188,10 +199,41 @@ export function LisaaHoitoalueModaali({ asiakkuudet, muokattava = null, onClose,
               {kohteet.length > 1 && <div className="space-y-2"> <p className="text-sm font-medium text-foreground">Valitse löydetyistä kohteista</p>{kohteet.map((kohde) => <button key={kohde.id} type="button" onClick={() => valitseKohde(kohde)} className={`w-full rounded-xl border px-4 py-3 text-left transition ${valittu?.id === kohde.id ? "border-primary bg-primary/5" : "border-border bg-white hover:border-primary/40"}`}><div className="flex items-center justify-between gap-3"><div><p className="text-sm font-medium text-foreground">{kohde.osoite || "Kiinteistö"}</p><p className="mt-1 text-xs text-muted">Kiinteistötunnus: {kohde.kiinteistotunnus ?? "Ei tunnusta"}</p></div>{valittu?.id === kohde.id && <Check className="h-5 w-5 shrink-0 text-primary" />}</div></button>)}</div>}
             </div>
 
-            {rajaGeoJson && <div className="relative z-0 isolate space-y-2"><div className="relative z-10 flex items-center gap-2 bg-inherit text-sm font-medium text-foreground"><MapPin className="h-4 w-4 text-primary" /> Kiinteistörajan esikatselu</div><div className="relative z-0 isolate overflow-hidden rounded-xl"><MmlHoitoalueEsikatselu geometry={rajaGeoJson} /></div><div className="relative z-10 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs leading-5 text-muted"><span className="font-medium text-foreground">MML:n kiinteistöraja.</span> Tarkista kartalta, että löydetty kohde vastaa hoidettavaa aluetta. Hyväksytty raja tallennetaan Viaran hoitoalueen GeoJSON-rajaukseksi.</div></div>}
+            {rajaGeoJson && <div className="relative z-0 isolate space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Kiinteistörajan esikatselu</p>
+                  <p className="text-xs text-muted">Virallinen Maanmittauslaitoksen raja säilyy muuttumattomana.</p>
+                </div>
+              </div>
+              <MmlHoitoalueEsikatselu geometry={rajaGeoJson} />
 
-            {virhe && <p role="alert" className="relative z-20 rounded-xl border border-destructive/25 bg-destructive/10 px-4 py-3 text-sm text-destructive">{virhe}</p>}
-            <button type="button" onClick={tallenna} disabled={odottaa || hakee || !nimi.trim() || !asiakkuusId || !rajaGeoJson} className="relative z-20 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60">{odottaa ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {muokkaus ? "Tallenna muutokset" : "Hyväksy ja tallenna hoitoalue"}</button>
+              <div className="rounded-2xl border border-border bg-white/70 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">Läsnäoloalue</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">Säädä GPS:n sallittua heittoa hoitoalueen rajaan nähden. Positiivinen arvo laajentaa aluetta ja negatiivinen arvo kutistaa sitä.</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xl font-semibold tabular-nums text-foreground">{lasnaoloalueMetrit > 0 ? "+" : ""}{lasnaoloalueMetrit} m</p>
+                    <p className="text-[11px] text-muted">oletus 0 m</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <button type="button" onClick={() => muutaLasnaoloaluetta(-1)} disabled={lasnaoloalueMetrit <= LASNAOLOALUE_MIN || odottaa} aria-label="Pienennä läsnäoloaluetta yhdellä metrillä" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-white text-foreground hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"><Minus className="h-4 w-4" /></button>
+                  <input type="range" min={LASNAOLOALUE_MIN} max={LASNAOLOALUE_MAX} step={1} value={lasnaoloalueMetrit} onChange={(e) => setLasnaoloalueMetrit(Number(e.target.value))} aria-label="Läsnäoloalue metreinä" className="min-w-0 flex-1 accent-primary" />
+                  <button type="button" onClick={() => muutaLasnaoloaluetta(1)} disabled={lasnaoloalueMetrit >= LASNAOLOALUE_MAX || odottaa} aria-label="Kasvata läsnäoloaluetta yhdellä metrillä" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-white text-foreground hover:border-primary/40 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"><Plus className="h-4 w-4" /></button>
+                </div>
+                <div className="mt-2 flex justify-between text-[11px] text-muted"><span>{LASNAOLOALUE_MIN} m</span><span>0 m</span><span>+{LASNAOLOALUE_MAX} m</span></div>
+              </div>
+            </div>}
+
+            {virhe && <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">{virhe}</div>}
+
+            <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+              <button type="button" onClick={onClose} disabled={odottaa || hakee} className="min-h-11 rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-50">Peruuta</button>
+              <button type="button" onClick={tallenna} disabled={odottaa || hakee || !nimi.trim() || !asiakkuusId || !rajaGeoJson} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50">{odottaa ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} {muokkaus ? "Tallenna muutokset" : "Hyväksy ja tallenna hoitoalue"}</button>
+            </div>
           </div>
         )}
       </div>
