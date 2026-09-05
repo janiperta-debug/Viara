@@ -88,6 +88,7 @@ function muodostaTyonSuoritukset(tapahtumat: RawTapahtuma[]): TyonjohtoTyonSuori
     const valmis = viimeinen("tyo_valmis");
     const poikkeamaLuotu = tapahtumatAlueella.filter((t) => t.tyyppi === "poikkeama_luotu").length;
     const poikkeamaRatkaistu = tapahtumatAlueella.filter((t) => t.tyyppi === "poikkeama_ratkaistu").length;
+    const tila: TyonjohtoTyonSuoritus["tila"] = valmis ? "valmis" : aloitus ? "aloitettu" : "ei_tapahtumia";
     return {
       hoitoalue: tapahtumatAlueella[0].hoitoalueet?.nimi ?? "Ei kohdetta",
       saapuminen: arrival ? muotoileViaraAika(arrival.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
@@ -101,7 +102,7 @@ function muodostaTyonSuoritukset(tapahtumat: RawTapahtuma[]): TyonjohtoTyonSuori
       gpsPoistuminen: tarkistaGps(departure),
       poikkeamia: poikkeamaLuotu,
       poikkeamatRatkaistu: Math.min(poikkeamaRatkaistu, poikkeamaLuotu),
-      tila: valmis ? "valmis" : aloitus ? "aloitettu" : "ei_tapahtumia",
+      tila,
     };
   }).sort((a, b) => a.hoitoalue.localeCompare(b.hoitoalue, "fi"));
 }
