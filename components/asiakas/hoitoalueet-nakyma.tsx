@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronRight, X, MapPin, Plus } from "lucide-react";
 import type { AsiakasAlue } from "@/lib/asiakas-data";
 import type { Poikkeama } from "@/lib/poikkeamat";
+import { muotoileViaraAika } from "@/lib/viara-aika";
 import { UusiAsiakasHavainto } from "./asiakas-havainnot-lomake";
 import { PoikkeamatNakyma } from "@/components/poikkeamat/poikkeamat-nakyma";
 
@@ -36,7 +37,7 @@ function Detalji({ alue, poikkeamat, onUusiHavainto }: { alue: AsiakasAlue; poik
   return <div className="flex flex-col gap-4"><div className="metal-card rounded-3xl p-5"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="text-xl font-bold text-foreground">{alue.nimi}</h2><p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted"><MapPin className="h-4 w-4 shrink-0" />{alue.osoite ?? "Ei osoitetta"}</p></div><span className="flex shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-foreground shadow-sm"><TilaVari tila={alue.tila} />{tilaLabel(alue.tila)}</span></div>
     <div className="mt-4"><div className="flex items-center justify-between text-sm"><span className="text-muted">Edistymä</span><span className="font-semibold text-foreground">{alue.edistyma} %</span></div><div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-white shadow-inner"><div className={`h-full rounded-full ${alue.tila === "valmis" ? "bg-green-600" : alue.tila === "tyon_alla" ? "bg-amber-600" : "bg-red-600"}`} style={{ width: `${alue.edistyma}%` }} /></div></div>
     {alue.kiinteistotunnus && <p className="mt-3 text-sm text-muted">Kiinteistötunnus: <span className="font-medium text-foreground">{alue.kiinteistotunnus}</span></p>}
-    <p className="mt-3 text-sm text-muted">{alue.viimeisinTapahtuma ? `Viimeisin työn tilatapahtuma: ${new Date(alue.viimeisinTapahtuma).toLocaleString("fi-FI", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "Työstä ei ole vielä kirjattu tilatapahtumaa."}</p>
+    <p className="mt-3 text-sm text-muted">{alue.viimeisinTapahtuma ? `Viimeisin työn tilatapahtuma: ${muotoileViaraAika(alue.viimeisinTapahtuma, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}` : "Työstä ei ole vielä kirjattu tilatapahtumaa."}</p>
     <button type="button" onClick={onUusiHavainto} className="btn-primary mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-5 text-primary-foreground"><Plus className="h-5 w-5" strokeWidth={2.25} /><span className="text-base font-semibold">Uusi havainto</span></button>
   </div>
   <PoikkeamatNakyma poikkeamat={poikkeamat} otsikko="Aktiivinen poikkeama" kuvaus="Tällä hoitoalueella on ollut syy, jonka vuoksi työ ei ole edennyt normaalisti." />
