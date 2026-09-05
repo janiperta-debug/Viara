@@ -124,27 +124,33 @@ function lineCommand(x1: number, y1: number, x2: number, y2: number, color = BOR
 function makePage(data: PdfRaportti, pageLines: PdfLine[], pageIndex: number, pageCount: number) {
   const commands: string[] = [];
   commands.push("q");
-  commands.push("BT");
 
+  // Brändielementit ovat grafiikkaoperaattoreita ja tehdään tekstikontekstin ulkopuolella.
   commands.push(`${BRAND} rg`);
   commands.push(`${MARGIN_X} ${TOP_Y - 3} m ${MARGIN_X + 8} ${TOP_Y - 19} l ${MARGIN_X + 16} ${TOP_Y - 3} l ${MARGIN_X + 12} ${TOP_Y - 3} l ${MARGIN_X + 8} ${TOP_Y - 12} l ${MARGIN_X + 4} ${TOP_Y - 3} l h f`);
-  commands.push(`${DARK} rg /FB 15 Tf 1 0 0 1 ${MARGIN_X + 24} ${TOP_Y - 15} Tm (VIARA) Tj`);
   commands.push(lineCommand(MARGIN_X, TOP_Y - 29, MARGIN_X + CONTENT_WIDTH, TOP_Y - 29, BRAND, 1.2));
 
+  commands.push("BT");
+  commands.push(textCommand("VIARA", MARGIN_X + 24, TOP_Y - 15, 15, true));
   let y = TOP_Y - 58;
   commands.push(textCommand(data.otsikko, MARGIN_X, y, 18, true));
   y -= 24;
   commands.push(textCommand(data.kohde, MARGIN_X, y, 10.5, false));
   commands.push(`${MUTED} rg /FR 9 Tf 1 0 0 1 ${PAGE_WIDTH - MARGIN_X - 170} ${y} Tm (${escapePdfText(data.aikavali)}) Tj`);
+  commands.push("ET");
+
   y -= 18;
   commands.push(lineCommand(MARGIN_X, y, MARGIN_X + CONTENT_WIDTH, y, BORDER, 0.7));
   y -= 25;
 
   const sectionTitle = data.otsikko === "Hoitopäiväkirja" ? "HOITOPÄIVÄKIRJA" : "HAVAINNOT JA POIKKEAMAT";
   commands.push(rectCommand(MARGIN_X, y - 5, CONTENT_WIDTH, 23, LIGHT));
-  commands.push(`${DARK} rg /FB 9 Tf 1 0 0 1 ${MARGIN_X + 9} ${y + 3} Tm (${sectionTitle}) Tj`);
+  commands.push("BT");
+  commands.push(`${DARK} rg /FB 9 Tf 1 0 0 1 ${MARGIN_X + 9} ${y + 3} Tm (${escapePdfText(sectionTitle)}) Tj`);
+  commands.push("ET");
   y -= 32;
 
+  commands.push("BT");
   for (const line of pageLines) {
     y -= line.gapBefore ?? 0;
     const size = line.size ?? 9;
@@ -155,8 +161,10 @@ function makePage(data: PdfRaportti, pageLines: PdfLine[], pageIndex: number, pa
     }
     y -= LINE_HEIGHT + Math.max(0, size - 9) * 0.65;
   }
+  commands.push("ET");
 
   commands.push(lineCommand(MARGIN_X, FOOTER_Y + 18, MARGIN_X + CONTENT_WIDTH, FOOTER_Y + 18, BORDER, 0.6));
+  commands.push("BT");
   commands.push(`${MUTED} rg /FR 7.5 Tf 1 0 0 1 ${MARGIN_X} ${FOOTER_Y} Tm (Viara  ·  ${escapePdfText(data.otsikko)}) Tj`);
   commands.push(`${MUTED} rg /FR 7.5 Tf 1 0 0 1 ${PAGE_WIDTH - MARGIN_X - 62} ${FOOTER_Y} Tm (Sivu ${pageIndex + 1} / ${pageCount}) Tj`);
   commands.push("ET");
