@@ -2,29 +2,22 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import {
-  HAVAINNOT,
-  OMA_HOITOALUE,
-  aktiivisiaHavaintoja,
-} from "@/lib/asukas-mock";
+import type { AsukasHoitoalue } from "@/lib/asukas-data";
 import { HavaintoKortti, TeeHavaintoModaali } from "./havainnot-jaettu";
 
-export function HavainnotNakyma() {
+export function HavainnotNakyma({ alue }: { alue: AsukasHoitoalue }) {
   const [modaali, setModaali] = useState(false);
-  const aktiiviset = aktiivisiaHavaintoja();
+  const aktiiviset = alue.havainnot.filter(
+    (havainto) => havainto.status === "avoin" || havainto.status === "tyon_alla",
+  ).length;
 
   return (
     <div className="mx-auto w-full max-w-lg px-4 py-5">
       <header className="px-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Havainnot
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Hoitoalueen {OMA_HOITOALUE.nimi} havainnot
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Havainnot</h1>
+        <p className="mt-1 text-sm text-muted">Hoitoalueen {alue.nimi} havainnot</p>
       </header>
 
-      {/* Uusi havainto -pääpainike */}
       <button
         type="button"
         onClick={() => setModaali(true)}
@@ -36,22 +29,29 @@ export function HavainnotNakyma() {
 
       {aktiiviset > 0 && (
         <p className="mt-3 px-1 text-sm text-muted">
-          {"Hoitoalueella on "}
-          <span className="font-medium text-foreground">
-            {aktiiviset} avointa havaintoa
-          </span>
+          Hoitoalueella on <span className="font-medium text-foreground">{aktiiviset} avointa havaintoa</span>
           {" — tarkista ennen uuden tekemistä, onko asiasta jo ilmoitettu."}
         </p>
       )}
 
-      {/* Kaikki oman hoitoalueen havainnot (myös muiden tekemät) */}
       <div className="mt-5 flex flex-col gap-3">
-        {HAVAINNOT.map((h) => (
-          <HavaintoKortti key={h.id} havainto={h} />
-        ))}
+        {alue.havainnot.length > 0 ? (
+          alue.havainnot.map((havainto) => (
+            <HavaintoKortti key={havainto.id} havainto={havainto} />
+          ))
+        ) : (
+          <p className="metal-card rounded-2xl p-4 text-sm text-muted">
+            Hoitoalueella ei ole vielä havaintoja.
+          </p>
+        )}
       </div>
 
-      {modaali && <TeeHavaintoModaali onClose={() => setModaali(false)} />}
+      {modaali && (
+        <TeeHavaintoModaali
+          hoitoalueNimi={alue.nimi}
+          onClose={() => setModaali(false)}
+        />
+      )}
     </div>
   );
 }
