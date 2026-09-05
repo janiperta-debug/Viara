@@ -1,6 +1,8 @@
 import { OmaHoitoalue } from "@/components/asukas/oma-hoitoalue";
 import { haeAsukasHoitoalue } from "@/lib/asukas-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function AsukasPage({
   searchParams,
 }: {
