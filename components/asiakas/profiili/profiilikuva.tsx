@@ -1,7 +1,6 @@
 "use client";
 
-import { Camera, UserRound } from "lucide-react";
-import Image from "next/image";
+import { Camera } from "lucide-react";
 import { useRef } from "react";
 import { lataaProfiilikuva } from "@/app/actions/profiili-kuva";
 
@@ -27,7 +26,7 @@ export function Profiilikuva({ nimi, initiaalit, avatarUrl }: { nimi: string; in
         aria-label={avatarUrl ? `Vaihda käyttäjän ${nimi} profiilikuva` : `Lisää käyttäjälle ${nimi} profiilikuva`}
       >
         {avatarUrl ? (
-          <Image src={avatarUrl} alt="" fill sizes="64px" className="object-cover" />
+          <img src={avatarUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <span>{initiaalit}</span>
         )}
