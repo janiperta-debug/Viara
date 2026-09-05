@@ -3,6 +3,7 @@ import { haeAsiakasTiedot } from "@/lib/asiakas-data";
 import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
 import { kirjauduUlos } from "@/app/actions/kirjaudu-ulos";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
+import { Profiilikuva } from "@/components/asiakas/profiili/profiilikuva";
 
 export default async function AsiakasProfiiliPage() {
   await vaadiRooli(["asiakas", "tyonjohto", "admin"]);
@@ -16,9 +17,7 @@ export default async function AsiakasProfiiliPage() {
       <header><h1 className="text-3xl font-bold text-foreground md:text-4xl">Profiili</h1></header>
 
       <section className="metal-card flex items-center gap-4 rounded-3xl p-5" aria-label="Käyttäjä">
-        <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground" aria-hidden>
-          {kayttaja.initiaalit}
-        </span>
+        <Profiilikuva nimi={kayttaja.nimi} initiaalit={kayttaja.initiaalit} avatarUrl={kayttaja.avatarUrl} />
         <div className="min-w-0">
           <p className="text-xl font-bold text-foreground">{kayttaja.nimi}</p>
           <p className="text-sm text-muted">{kayttaja.rooliLabel}</p>
