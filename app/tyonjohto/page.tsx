@@ -7,9 +7,9 @@ import { PoikkeamatNakyma } from "@/components/poikkeamat/poikkeamat-nakyma";
 import { haeAktiivisetPoikkeamatOrganisaatiolle } from "@/lib/poikkeamat";
 import { haeTyonjohtoHavainnot, haeOmaOrganisaatioId } from "@/lib/tyonjohto-havainnot";
 import { haeOmaKayttaja } from "@/lib/oma-kayttaja";
+import { muotoileViaraKellonaika } from "@/lib/viara-aika";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 type RawTapahtuma = { id: string; aikaleima: string; tyyppi: TyonjohtoTapahtuma["tyyppi"]; kayttajat: { nimi: string; organisaatio_id: string | null } | null; hoitoalueet: { nimi: string } | null; tyovalinetyypit: { nimi: string } | null };
 type RawKuljettaja = { id: string; nimi: string };
@@ -23,7 +23,7 @@ const TYYPPI_TEKSTIT: Record<TyonjohtoTapahtuma["tyyppi"], string> = {
   tyovaline_off: "Työväline irrotettu", havainto_luotu: "Uusi havainto", havainto_otettu_tyon_alle: "Havainto otettu työn alle",
   havainto_valmis: "Havainto valmis", havainto_suljettu: "Havainto suljettu", poikkeama_luotu: "Poikkeamailmoitus", poikkeama_ratkaistu: "Poikkeama ratkaistu",
 };
-function muotoileAika(aikaleima: string): string { return new Intl.DateTimeFormat("fi-FI", { hour: "2-digit", minute: "2-digit" }).format(new Date(aikaleima)); }
+function muotoileAika(aikaleima: string): string { return muotoileViaraKellonaika(aikaleima); }
 function muunnaTapahtuma(tapahtuma: RawTapahtuma): TyonjohtoTapahtuma {
   const hoitoalue = tapahtuma.hoitoalueet?.nimi; const tyovaline = tapahtuma.tyovalinetyypit?.nimi;
   let konteksti = hoitoalue ?? ""; if (tyovaline) konteksti = hoitoalue ? `${hoitoalue} · ${tyovaline}` : tyovaline; if (!konteksti) konteksti = "Ei kohdetta";
