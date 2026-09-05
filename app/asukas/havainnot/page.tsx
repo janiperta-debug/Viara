@@ -1,6 +1,8 @@
 import { HavainnotNakyma } from "@/components/asukas/havainnot-nakyma";
 import { haeAsukasHoitoalue } from "@/lib/asukas-data";
 
+export const dynamic = "force-dynamic";
+
 export default async function AsukasHavainnotPage({
   searchParams,
 }: {
