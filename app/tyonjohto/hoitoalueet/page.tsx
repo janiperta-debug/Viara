@@ -11,6 +11,7 @@ type RawHoitoalue = {
   kiinteistotunnus: string | null;
   asiakkuus_id: string | null;
   raja_geojson: unknown;
+  lasnaoloalue_metrit: number | null;
 };
 
 function koordinaatitGeoJsonista(geojson: unknown): { lat: number; lng: number } | null {
@@ -61,7 +62,7 @@ export default async function HoitoalueetPage() {
 
   const { data: hoitoalueData } = await supabase
     .from("hoitoalueet")
-    .select("id, nimi, osoite, kiinteistotunnus, asiakkuus_id, raja_geojson, asiakkuudet!inner(organisaatio_id)")
+    .select("id, nimi, osoite, kiinteistotunnus, asiakkuus_id, raja_geojson, lasnaoloalue_metrit, asiakkuudet!inner(organisaatio_id)")
     .eq("asiakkuudet.organisaatio_id", organisaatioId)
     .order("nimi");
 
@@ -79,6 +80,7 @@ export default async function HoitoalueetPage() {
       lat: point?.lat ?? null,
       lng: point?.lng ?? null,
       rajaGeoJson: row.raja_geojson as MmlHoitoalueKohde["rajaGeoJson"],
+      lasnaoloalueMetrit: row.lasnaoloalue_metrit ?? 0,
     }];
   });
 
