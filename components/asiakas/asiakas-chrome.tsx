@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, Building2, TriangleAlert, User, Bell } from "lucide-react";
-import { ASIAKAS } from "@/lib/asiakas-mock";
+import type { ProfiiliTiedot } from "@/lib/oma-kayttaja";
 import { type ViaraRooli, voikoVaihtaaNakymaa } from "@/lib/nakymat";
 
 const ITEMS = [
@@ -18,13 +18,7 @@ function onAktiivinen(pathname: string, href: string) {
   return href === "/asiakas" ? pathname === "/asiakas" : pathname.startsWith(href);
 }
 
-export function AsiakasChrome({
-  children,
-  rooli,
-}: {
-  children: React.ReactNode;
-  rooli: ViaraRooli;
-}) {
+export function AsiakasChrome({ children, rooli, kayttaja }: { children: React.ReactNode; rooli: ViaraRooli; kayttaja: ProfiiliTiedot }) {
   const pathname = usePathname();
   const naytaNakymaVaihto = voikoVaihtaaNakymaa(rooli);
 
@@ -39,27 +33,14 @@ export function AsiakasChrome({
           <nav aria-label="Asiakasnavigaatio" className="hidden items-center gap-1 md:flex">
             {ITEMS.map(({ href, label, Icon }) => {
               const aktiivinen = onAktiivinen(pathname, href);
-              return (
-                <Link key={href} href={href} aria-current={aktiivinen ? "page" : undefined} className={`relative flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${aktiivinen ? "bg-white text-primary shadow-sm" : "text-muted hover:text-foreground"}`}>
-                  <Icon className="h-5 w-5" strokeWidth={aktiivinen ? 2 : 1.75} />
-                  {label}
-                </Link>
-              );
+              return <Link key={href} href={href} aria-current={aktiivinen ? "page" : undefined} className={`relative flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${aktiivinen ? "bg-white text-primary shadow-sm" : "text-muted hover:text-foreground"}`}><Icon className="h-5 w-5" strokeWidth={aktiivinen ? 2 : 1.75} />{label}</Link>;
             })}
           </nav>
 
           <div className="flex items-center gap-2.5">
-            {naytaNakymaVaihto && (
-              <Link href="/valitse" className="inline-flex rounded-full border border-border/70 px-2.5 py-2 text-xs font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:px-3 md:text-sm">
-                Vaihda näkymää
-              </Link>
-            )}
-            <button type="button" aria-label="Ilmoitukset" className="metal-card relative flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-              <Bell className="h-5 w-5" strokeWidth={1.75} />
-            </button>
-            <Link href="/asiakas/profiili" aria-label={`Profiili — ${ASIAKAS.nimi}`} className="metal-card flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-              {ASIAKAS.nimikirjaimet}
-            </Link>
+            {naytaNakymaVaihto && <Link href="/valitse" className="inline-flex rounded-full border border-border/70 px-2.5 py-2 text-xs font-medium text-muted transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:px-3 md:text-sm">Vaihda näkymää</Link>}
+            <button type="button" aria-label="Ilmoitukset" className="metal-card relative flex h-10 w-10 items-center justify-center rounded-full text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Bell className="h-5 w-5" strokeWidth={1.75} /></button>
+            <Link href="/asiakas/profiili" aria-label={`Profiili — ${kayttaja.nimi}`} className="metal-card flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">{kayttaja.initiaalit}</Link>
           </div>
         </div>
       </header>
@@ -70,14 +51,7 @@ export function AsiakasChrome({
         <ul className="flex items-stretch justify-around px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2">
           {ITEMS.map(({ href, label, Icon }) => {
             const aktiivinen = onAktiivinen(pathname, href);
-            return (
-              <li key={href}>
-                <Link href={href} aria-current={aktiivinen ? "page" : undefined} className={`relative flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${aktiivinen ? "bg-white text-primary shadow-sm" : "text-muted"}`}>
-                  <Icon className="h-6 w-6" strokeWidth={aktiivinen ? 2 : 1.75} />
-                  {label}
-                </Link>
-              </li>
-            );
+            return <li key={href}><Link href={href} aria-current={aktiivinen ? "page" : undefined} className={`relative flex min-h-11 min-w-16 flex-col items-center justify-center gap-1 rounded-xl px-3 py-1.5 text-[11px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${aktiivinen ? "bg-white text-primary shadow-sm" : "text-muted"}`}><Icon className="h-6 w-6" strokeWidth={aktiivinen ? 2 : 1.75} />{label}</Link></li>;
           })}
         </ul>
       </nav>
