@@ -16,6 +16,7 @@ export type AsiakasTiedot = {
   asiakkuusNimi: string | null;
   organisaatioId: string | null;
   alueet: AsiakasAlue[];
+  avoimetHavainnot: number;
 };
 
 export async function haeAsiakasTiedot(): Promise<AsiakasTiedot | null> {
@@ -35,7 +36,13 @@ export async function haeAsiakasTiedot(): Promise<AsiakasTiedot | null> {
     typeof kayttaja.asiakkuus_id === "string" ? kayttaja.asiakkuus_id : null;
 
   if (!asiakkuusId) {
-    return { asiakkuusId: null, asiakkuusNimi: null, organisaatioId, alueet: [] };
+    return {
+      asiakkuusId: null,
+      asiakkuusNimi: null,
+      organisaatioId,
+      alueet: [],
+      avoimetHavainnot: 0,
+    };
   }
 
   const admin = createSupabaseAdminClient();
@@ -63,6 +70,7 @@ export async function haeAsiakasTiedot(): Promise<AsiakasTiedot | null> {
       asiakkuusNimi: asiakkuus.nimi,
       organisaatioId: asiakkuus.organisaatio_id,
       alueet: [],
+      avoimetHavainnot: 0,
     };
   }
 
@@ -72,6 +80,14 @@ export async function haeAsiakasTiedot(): Promise<AsiakasTiedot | null> {
     .in("hoitoalue_id", ids)
     .in("tyyppi", ["tyo_aloitettu", "tyo_valmis"])
     .order("aikaleima", { ascending: false });
+
+  const { data: havainnot } = await admin
+    .from("havainnot")
+    .select("tila")
+    .in("hoitoalue_id", ids)
+    .in("tila", ["avoin", "tyon_alla"]);
+
+  const avoimetHavainnot = havainnot?.length ?? 0;
 
   const viimeiset = new Map<string, { tyyppi: string; aikaleima: string }>();
   for (const tapahtuma of tapahtumat ?? []) {
@@ -102,5 +118,6 @@ export async function haeAsiakasTiedot(): Promise<AsiakasTiedot | null> {
     asiakkuusNimi: asiakkuus.nimi,
     organisaatioId: asiakkuus.organisaatio_id,
     alueet: alueData,
+    avoimetHavainnot,
   };
 }
