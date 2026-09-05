@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Search, Plus, MapPin, Building2, Pencil } from "lucide-react";
 import { LisaaHoitoalueModaali } from "./lisaa-hoitoalue-modaali";
+import type { MmlHoitoalueKohde } from "@/lib/mml-kiinteisto";
 
 const HoitoalueKartta = dynamic(() => import("./hoitoalue-kartta").then((m) => m.HoitoalueKartta), {
   ssr: false,
@@ -20,7 +21,7 @@ export type HoitoalueRivi = {
   asiakkuusNimi: string;
   lat: number | null;
   lng: number | null;
-  rajaGeoJson: unknown;
+  rajaGeoJson: MmlHoitoalueKohde["rajaGeoJson"];
 };
 
 type Props = { hoitoalueet: HoitoalueRivi[]; asiakkuudet: Asiakkuus[] };
