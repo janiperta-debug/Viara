@@ -1,6 +1,7 @@
 import { HoitoalueetNakyma, type HoitoalueRivi } from "@/components/tyonjohto/hoitoalueet/hoitoalueet-nakyma";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import type { MmlHoitoalueKohde } from "@/lib/mml-kiinteisto";
 
 type Asiakkuus = { id: string; nimi: string };
 type RawHoitoalue = {
@@ -77,7 +78,7 @@ export default async function HoitoalueetPage() {
       asiakkuusNimi: asiakkuusNimet.get(row.asiakkuus_id)!,
       lat: point?.lat ?? null,
       lng: point?.lng ?? null,
-      rajaGeoJson: row.raja_geojson,
+      rajaGeoJson: row.raja_geojson as MmlHoitoalueKohde["rajaGeoJson"],
     }];
   });
 
