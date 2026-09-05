@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { DesktopHeader } from "@/components/tyonjohto/desktop-header";
 import { DesktopNav } from "@/components/tyonjohto/desktop-nav";
+import { haeTyonjohtoYlapalkki } from "@/lib/tyonjohto-tilanne";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
 
 export default async function TyonjohtoLayout({
@@ -9,10 +10,11 @@ export default async function TyonjohtoLayout({
   children: ReactNode;
 }) {
   const rooli = await vaadiRooli(["tyonjohto", "admin"]);
+  const ylapalkki = await haeTyonjohtoYlapalkki();
 
   return (
     <div className="flex min-h-screen flex-1 flex-col">
-      <DesktopHeader rooli={rooli} />
+      <DesktopHeader rooli={rooli} data={ylapalkki} />
       <main className="mx-auto w-full max-w-[1920px] flex-1 px-5 py-6 lg:px-8">
         {children}
       </main>
