@@ -63,7 +63,7 @@ export default async function RaportitPage() {
         </div>
       )}
 
-      <p className="text-xs text-muted">Raportit perustuvat Viaran tapahtumahistoriaan. PDF-vienti ja tarkemmat suodattimet voidaan lisätä myöhemmin ilman erillistä raporttidataa.</p>
+      <p className="text-xs text-muted">Raportit perustuvat Viaran tapahtumahistoriaan. Avaa raportti ja lataa siitä PDF-versio.</p>
     </div>
   );
 }
