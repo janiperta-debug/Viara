@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CircleCheck, MapPin, User, Wrench, Clock, FileText } from "lucide-react";
+import { ArrowLeft, CircleCheck, CircleAlert, MapPin, User, Wrench, Clock, FileText } from "lucide-react";
 import { haeOmaOrganisaatioId } from "@/lib/tyonjohto-havainnot";
 import { haeTyonjohtoRaportti } from "@/lib/tyonjohto-raportit";
 import { muotoileViaraAika } from "@/lib/viara-aika";
@@ -26,6 +26,11 @@ export default async function RaporttiPage({ params }: { params: Promise<{ id: s
     );
   }
 
+  const onTyosuoritus = data.raportti.tyyppi === "tyon_suoritus";
+  const valmiit = data.suoritukset.filter((s) => s.tila === "valmis").length;
+  const keskeneraiset = data.suoritukset.filter((s) => s.tila === "aloitettu").length;
+  const poikkeamaAlueet = data.suoritukset.filter((s) => s.poikkeamia > 0).length;
+
   return (
     <div className="flex flex-col gap-5">
       <Link href="/tyonjohto/raportit" className="inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:underline">
@@ -43,29 +48,87 @@ export default async function RaporttiPage({ params }: { params: Promise<{ id: s
         </span>
       </div>
 
-      <div className="metal-card overflow-hidden rounded-2xl">
-        <div className="border-b border-border/70 px-5 py-4">
-          <h2 className="text-base font-semibold text-foreground">Tapahtumat</h2>
-          <p className="mt-0.5 text-sm text-muted">Raportin sisältö muodostuu Viaran tapahtumahistoriasta.</p>
+      {onTyosuoritus ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="metal-card rounded-2xl p-4">
+              <div className="text-sm text-muted">Valmiit hoitoalueet</div>
+              <div className="mt-1 text-2xl font-semibold text-foreground">{valmiit}</div>
+            </div>
+            <div className="metal-card rounded-2xl p-4">
+              <div className="text-sm text-muted">Keskeneräiset</div>
+              <div className="mt-1 text-2xl font-semibold text-foreground">{keskeneraiset}</div>
+            </div>
+            <div className="metal-card rounded-2xl p-4">
+              <div className="text-sm text-muted">Poikkeamia sisältävät</div>
+              <div className="mt-1 text-2xl font-semibold text-foreground">{poikkeamaAlueet}</div>
+            </div>
+          </div>
+
+          <div className="metal-card overflow-hidden rounded-2xl">
+            <div className="border-b border-border/70 px-5 py-4">
+              <h2 className="text-base font-semibold text-foreground">Hoitoalueiden suoritus</h2>
+              <p className="mt-0.5 text-sm text-muted">Suoritus muodostetaan suoraan Viaran tapahtumahistoriasta.</p>
+            </div>
+            <div className="divide-y divide-border/60">
+              {data.suoritukset.map((suoritus) => (
+                <div key={suoritus.hoitoalue} className="px-5 py-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-foreground">{suoritus.hoitoalue}</div>
+                      <div className="mt-1 text-sm text-muted">
+                        {suoritus.tyontekijat.length > 0 ? suoritus.tyontekijat.join(", ") : "Tekijää ei tiedossa"}
+                      </div>
+                    </div>
+                    <span className={suoritus.tila === "valmis" ? "inline-flex items-center gap-1.5 rounded-full bg-green-600/10 px-2.5 py-1 text-xs font-medium text-green-700" : "inline-flex items-center gap-1.5 rounded-full bg-amber-600/10 px-2.5 py-1 text-xs font-medium text-amber-700"}>
+                      {suoritus.tila === "valmis" ? <CircleCheck className="h-3.5 w-3.5" /> : <CircleAlert className="h-3.5 w-3.5" />}
+                      {suoritus.tila === "valmis" ? "Työ valmis" : "Työ aloitettu"}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-muted" /><div><div className="text-xs text-muted">Saapuminen</div><div className="font-medium text-foreground">{suoritus.saapuminen ?? "—"}</div></div></div>
+                    <div className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 text-muted" /><div><div className="text-xs text-muted">Työ aloitettu</div><div className="font-medium text-foreground">{suoritus.aloitus ?? "—"}</div></div></div>
+                    <div className="flex items-start gap-2"><Clock className="mt-0.5 h-4 w-4 text-muted" /><div><div className="text-xs text-muted">Työ valmis</div><div className="font-medium text-foreground">{suoritus.valmistuminen ?? "—"}</div></div></div>
+                    <div className="flex items-start gap-2"><MapPin className="mt-0.5 h-4 w-4 text-muted" /><div><div className="text-xs text-muted">Poistuminen</div><div className="font-medium text-foreground">{suoritus.poistuminen ?? "—"}</div></div></div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted">
+                    <span className="inline-flex items-center gap-1.5"><User className="h-4 w-4" />{suoritus.tyontekijat.length > 0 ? suoritus.tyontekijat.join(", ") : "Ei tekijätietoa"}</span>
+                    <span className="inline-flex items-center gap-1.5"><Wrench className="h-4 w-4" />{suoritus.tyovalineet.length > 0 ? suoritus.tyovalineet.join(", ") : "Ei työvälinetietoa"}</span>
+                    <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4" />{suoritus.gpsTapahtumia > 0 ? `${suoritus.gpsTapahtumia} GPS-tallennetta` : "Ei GPS-tallennetta"}</span>
+                    <span className="inline-flex items-center gap-1.5"><CircleAlert className="h-4 w-4" />{suoritus.poikkeamia > 0 ? `${suoritus.poikkeamia} poikkeamaa (${suoritus.poikkeamatRatkaistu} ratkaistu)` : "Ei poikkeamia"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="metal-card overflow-hidden rounded-2xl">
+          <div className="border-b border-border/70 px-5 py-4">
+            <h2 className="text-base font-semibold text-foreground">Tapahtumat</h2>
+            <p className="mt-0.5 text-sm text-muted">Raportin sisältö muodostuu Viaran tapahtumahistoriasta.</p>
+          </div>
+          <ul>
+            {data.tapahtumat.map((tapahtuma) => (
+              <li key={tapahtuma.id} className="border-b border-border/60 px-5 py-4 last:border-0">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <div className="font-medium text-foreground">{tapahtuma.tyyppi}</div>
+                    <div className="mt-1 text-sm text-muted">{tapahtuma.hoitoalue}</div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 text-sm text-muted sm:grid-cols-3 lg:min-w-[520px] lg:text-right">
+                    <span className="inline-flex items-center gap-1.5 sm:justify-end"><Clock className="h-4 w-4" />{muotoileViaraAika(tapahtuma.aikaleima, { hour: "2-digit", minute: "2-digit" })}</span>
+                    <span className="inline-flex items-center gap-1.5 sm:justify-end"><User className="h-4 w-4" />{tapahtuma.tekija}</span>
+                    <span className="inline-flex items-center gap-1.5 sm:justify-end">{tapahtuma.tyovaline ? <><Wrench className="h-4 w-4" />{tapahtuma.tyovaline}</> : <><MapPin className="h-4 w-4" />{tapahtuma.gps ? "GPS tallennettu" : "Ei GPS-sijaintia"}</>}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul>
-          {data.tapahtumat.map((tapahtuma) => (
-            <li key={tapahtuma.id} className="border-b border-border/60 px-5 py-4 last:border-0">
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <div className="font-medium text-foreground">{tapahtuma.tyyppi}</div>
-                  <div className="mt-1 text-sm text-muted">{tapahtuma.hoitoalue}</div>
-                </div>
-                <div className="grid grid-cols-1 gap-2 text-sm text-muted sm:grid-cols-3 lg:min-w-[520px] lg:text-right">
-                  <span className="inline-flex items-center gap-1.5 sm:justify-end"><Clock className="h-4 w-4" />{muotoileViaraAika(tapahtuma.aikaleima, { hour: "2-digit", minute: "2-digit" })}</span>
-                  <span className="inline-flex items-center gap-1.5 sm:justify-end"><User className="h-4 w-4" />{tapahtuma.tekija}</span>
-                  <span className="inline-flex items-center gap-1.5 sm:justify-end">{tapahtuma.tyovaline ? <><Wrench className="h-4 w-4" />{tapahtuma.tyovaline}</> : <><MapPin className="h-4 w-4" />{tapahtuma.gps ? "GPS tallennettu" : "Ei GPS-sijaintia"}</>}</span>
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+      )}
     </div>
   );
 }
