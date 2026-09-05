@@ -14,6 +14,15 @@ type Tulos =
   | { ok: true; hoitoalueId: string }
   | { ok: false; virhe: string };
 
+const LASNAOLOALUE_MIN = -50;
+const LASNAOLOALUE_MAX = 50;
+
+function validoiLasnaoloalue(value: number | undefined): number | null {
+  if (value === undefined) return 0;
+  if (!Number.isInteger(value) || value < LASNAOLOALUE_MIN || value > LASNAOLOALUE_MAX) return null;
+  return value;
+}
+
 async function haeOmaOrganisaatio(): Promise<
   | { ok: true; organisaatioId: string }
   | { ok: false; virhe: string }
@@ -99,6 +108,7 @@ export async function luoHoitoalue(input: {
   kiinteistotunnus: string;
   asiakkuusId: string;
   rajaGeoJson?: unknown;
+  lasnaoloalueMetrit?: number;
 }): Promise<Tulos> {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
@@ -106,10 +116,12 @@ export async function luoHoitoalue(input: {
   const nimi = validoiTeksti(input.nimi);
   const osoite = validoiTeksti(input.osoite);
   const kiinteistotunnus = validoiTeksti(input.kiinteistotunnus);
+  const lasnaoloalueMetrit = validoiLasnaoloalue(input.lasnaoloalueMetrit);
   if (!nimi) return { ok: false, virhe: "Hoitoalueen nimi ei kelpaa." };
   if (!osoite) return { ok: false, virhe: "Osoite ei kelpaa." };
   if (!input.asiakkuusId) return { ok: false, virhe: "Valitse asiakkuus." };
   if (!input.rajaGeoJson) return { ok: false, virhe: "Hyväksy ensin Maanmittauslaitokselta haettu kiinteistöraja." };
+  if (lasnaoloalueMetrit === null) return { ok: false, virhe: "Läsnäoloalueen arvon pitää olla kokonaisluku välillä −50 ja +50 metriä." };
 
   const admin = createSupabaseAdminClient();
   const { data: asiakkuus, error: asiakkuusError } = await admin
@@ -131,6 +143,7 @@ export async function luoHoitoalue(input: {
       kiinteistotunnus: kiinteistotunnus || null,
       asiakkuus_id: asiakkuus.id,
       raja_geojson: input.rajaGeoJson,
+      lasnaoloalue_metrit: lasnaoloalueMetrit,
     })
     .select("id")
     .single();
@@ -144,7 +157,7 @@ export async function luoHoitoalue(input: {
 
 export async function paivitaHoitoalue(
   hoitoalueId: string,
-  input: { nimi: string; osoite: string; kiinteistotunnus: string; asiakkuusId: string; rajaGeoJson?: unknown }
+  input: { nimi: string; osoite: string; kiinteistotunnus: string; asiakkuusId: string; rajaGeoJson?: unknown; lasnaoloalueMetrit?: number }
 ): Promise<Tulos> {
   const hallinta = await haeOmaOrganisaatio();
   if (!hallinta.ok) return hallinta;
@@ -153,9 +166,11 @@ export async function paivitaHoitoalue(
   const nimi = validoiTeksti(input.nimi);
   const osoite = validoiTeksti(input.osoite);
   const kiinteistotunnus = validoiTeksti(input.kiinteistotunnus);
+  const lasnaoloalueMetrit = validoiLasnaoloalue(input.lasnaoloalueMetrit);
   if (!nimi) return { ok: false, virhe: "Hoitoalueen nimi ei kelpaa." };
   if (!osoite) return { ok: false, virhe: "Osoite ei kelpaa." };
   if (!input.asiakkuusId) return { ok: false, virhe: "Valitse asiakkuus." };
+  if (lasnaoloalueMetrit === null) return { ok: false, virhe: "Läsnäoloalueen arvon pitää olla kokonaisluku välillä −50 ja +50 metriä." };
 
   const admin = createSupabaseAdminClient();
   const { data: asiakkuus } = await admin
@@ -179,6 +194,7 @@ export async function paivitaHoitoalue(
     osoite,
     kiinteistotunnus: kiinteistotunnus || null,
     asiakkuus_id: asiakkuus.id,
+    lasnaoloalue_metrit: lasnaoloalueMetrit,
   };
   if (input.rajaGeoJson) update.raja_geojson = input.rajaGeoJson;
 
