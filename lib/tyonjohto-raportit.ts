@@ -1,5 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
-import { muotoileViaraAika, muotoileViaraPaivamaara } from "@/lib/viara-aika";
+import { muotoileViaraAika } from "@/lib/viara-aika";
 
 export type TyonjohtoRaporttiTyyppi = "tyon_suoritus" | "poikkeamat" | "tapahtumat";
 
@@ -21,6 +21,20 @@ export type TyonjohtoRaporttiTapahtuma = {
   tekija: string;
   tyovaline: string | null;
   gps: boolean;
+};
+
+export type TyonjohtoTyonSuoritus = {
+  hoitoalue: string;
+  saapuminen: string | null;
+  poistuminen: string | null;
+  aloitus: string | null;
+  valmistuminen: string | null;
+  tyontekijat: string[];
+  tyovalineet: string[];
+  gpsTapahtumia: number;
+  poikkeamia: number;
+  poikkeamatRatkaistu: number;
+  tila: "valmis" | "aloitettu" | "ei_tapahtumia";
 };
 
 type RawTapahtuma = {
@@ -48,6 +62,10 @@ function paivaAvain(aikaleima: string) {
   return `${arvot.year}-${arvot.month}-${arvot.day}`;
 }
 
+function paivaTeksti(paiva: string) {
+  return paiva.split("-").reverse().join(".");
+}
+
 function ryhmittelePaivittain(tapahtumat: RawTapahtuma[]) {
   const ryhmat = new Map<string, RawTapahtuma[]>();
   for (const tapahtuma of tapahtumat) {
@@ -71,14 +89,13 @@ export async function haeTyonjohtoRaportit(organisaatioId: string): Promise<Tyon
   for (const [paiva, paivanTapahtumat] of ryhmat) {
     const tyot = paivanTapahtumat.filter((t) => t.tyyppi === "tyo_aloitettu" || t.tyyppi === "tyo_valmis");
     const poikkeamat = paivanTapahtumat.filter((t) => t.tyyppi === "poikkeama_luotu" || t.tyyppi === "poikkeama_ratkaistu");
-    const paivaTeksti = paiva.split("-").reverse().join(".");
 
     raportit.push({
       id: raporttiId("tyon_suoritus", paiva),
       tyyppi: "tyon_suoritus",
       otsikko: "Työn suoritus",
       kuvaus: `${new Set(tyot.map((t) => t.hoitoalue_id).filter(Boolean)).size} hoitoaluetta · ${tyot.length} työtapahtumaa`,
-      aika: paivaTeksti,
+      aika: paivaTeksti(paiva),
       tapahtumia: tyot.length,
       valmis: tyot.length > 0,
     });
@@ -89,7 +106,7 @@ export async function haeTyonjohtoRaportit(organisaatioId: string): Promise<Tyon
         tyyppi: "poikkeamat",
         otsikko: "Poikkeamat",
         kuvaus: `${new Set(poikkeamat.map((t) => t.hoitoalue_id).filter(Boolean)).size} hoitoaluetta · ${poikkeamat.length} tapahtumaa`,
-        aika: paivaTeksti,
+        aika: paivaTeksti(paiva),
         tapahtumia: poikkeamat.length,
         valmis: true,
       });
@@ -100,7 +117,7 @@ export async function haeTyonjohtoRaportit(organisaatioId: string): Promise<Tyon
       tyyppi: "tapahtumat",
       otsikko: "Tapahtumahistoria",
       kuvaus: `${paivanTapahtumat.length} tapahtumaa kaikista työn tapahtumista`,
-      aika: paivaTeksti,
+      aika: paivaTeksti(paiva),
       tapahtumia: paivanTapahtumat.length,
       valmis: paivanTapahtumat.length > 0,
     });
@@ -112,7 +129,7 @@ export async function haeTyonjohtoRaportit(organisaatioId: string): Promise<Tyon
 export async function haeTyonjohtoRaportti(
   organisaatioId: string,
   raporttiIdArvo: string,
-): Promise<{ raportti: TyonjohtoRaportti; tapahtumat: TyonjohtoRaporttiTapahtuma[] } | null> {
+): Promise<{ raportti: TyonjohtoRaportti; tapahtumat: TyonjohtoRaporttiTapahtuma[]; suoritukset: TyonjohtoTyonSuoritus[] } | null> {
   const osa = raporttiIdArvo.match(/^(tyon_suoritus|poikkeamat|tapahtumat)-(\d{4}-\d{2}-\d{2})$/);
   if (!osa) return null;
   const [, tyyppi, paiva] = osa as [string, TyonjohtoRaporttiTyyppi, string];
@@ -124,27 +141,67 @@ export async function haeTyonjohtoRaportti(
       ? paivanTapahtumat.filter((t) => t.tyyppi === "poikkeama_luotu" || t.tyyppi === "poikkeama_ratkaistu")
       : paivanTapahtumat;
 
-  const paivaTeksti = paiva.split("-").reverse().join(".");
   const raportti: TyonjohtoRaportti = {
     id: raporttiId(tyyppi, paiva),
     tyyppi,
     otsikko: tyyppi === "tyon_suoritus" ? "Työn suoritus" : tyyppi === "poikkeamat" ? "Poikkeamat" : "Tapahtumahistoria",
     kuvaus: `${new Set(valitut.map((t) => t.hoitoalue_id).filter(Boolean)).size} hoitoaluetta · ${valitut.length} tapahtumaa`,
-    aika: paivaTeksti,
+    aika: paivaTeksti(paiva),
     tapahtumia: valitut.length,
     valmis: valitut.length > 0,
   };
 
   if (!raportti.valmis) return null;
-  return { raportti, tapahtumat: valitut.map((t) => ({
-    id: t.id,
-    aikaleima: t.aikaleima,
-    tyyppi: tapahtumaLabel(t.tyyppi),
-    hoitoalue: t.hoitoalueet?.nimi ?? "Ei kohdetta",
-    tekija: t.kayttajat?.nimi ?? "Tuntematon käyttäjä",
-    tyovaline: t.tyovalinetyypit?.nimi ?? null,
-    gps: t.gps_lat !== null && t.gps_lng !== null,
-  })) };
+
+  return {
+    raportti,
+    tapahtumat: valitut.map((t) => ({
+      id: t.id,
+      aikaleima: t.aikaleima,
+      tyyppi: tapahtumaLabel(t.tyyppi),
+      hoitoalue: t.hoitoalueet?.nimi ?? "Ei kohdetta",
+      tekija: t.kayttajat?.nimi ?? "Tuntematon käyttäjä",
+      tyovaline: t.tyovalinetyypit?.nimi ?? null,
+      gps: t.gps_lat !== null && t.gps_lng !== null,
+    })),
+    suoritukset: tyyppi === "tyon_suoritus" ? muodostaTyonSuoritukset(paivanTapahtumat) : [],
+  };
+}
+
+function muodostaTyonSuoritukset(tapahtumat: RawTapahtuma[]): TyonjohtoTyonSuoritus[] {
+  const alueet = new Map<string, RawTapahtuma[]>();
+  for (const tapahtuma of tapahtumat) {
+    if (!tapahtuma.hoitoalue_id) continue;
+    const nykyinen = alueet.get(tapahtuma.hoitoalue_id) ?? [];
+    nykyinen.push(tapahtuma);
+    alueet.set(tapahtuma.hoitoalue_id, nykyinen);
+  }
+
+  return [...alueet.values()].map((tapahtumatAlueella) => {
+    const jarjestetty = [...tapahtumatAlueella].sort((a, b) => new Date(a.aikaleima).getTime() - new Date(b.aikaleima).getTime());
+    const tapahtuma = (tyyppi: string) => jarjestetty.find((t) => t.tyyppi === tyyppi) ?? null;
+    const viimeinen = (tyyppi: string) => [...jarjestetty].reverse().find((t) => t.tyyppi === tyyppi) ?? null;
+    const arrival = tapahtuma("hoitoalue_saapui");
+    const departure = viimeinen("hoitoalue_poistui");
+    const aloitus = tapahtuma("tyo_aloitettu");
+    const valmis = viimeinen("tyo_valmis");
+    const poikkeamaLuotu = tapahtumatAlueella.filter((t) => t.tyyppi === "poikkeama_luotu").length;
+    const poikkeamaRatkaistu = tapahtumatAlueella.filter((t) => t.tyyppi === "poikkeama_ratkaistu").length;
+
+    return {
+      hoitoalue: tapahtumatAlueella[0].hoitoalueet?.nimi ?? "Ei kohdetta",
+      saapuminen: arrival ? muotoileViaraAika(arrival.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
+      poistuminen: departure ? muotoileViaraAika(departure.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
+      aloitus: aloitus ? muotoileViaraAika(aloitus.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
+      valmistuminen: valmis ? muotoileViaraAika(valmis.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
+      tyontekijat: [...new Set(tapahtumatAlueella.map((t) => t.kayttajat?.nimi).filter((nimi): nimi is string => Boolean(nimi)))],
+      tyovalineet: [...new Set(tapahtumatAlueella.map((t) => t.tyovalinetyypit?.nimi).filter((nimi): nimi is string => Boolean(nimi)))],
+      gpsTapahtumia: tapahtumatAlueella.filter((t) => t.gps_lat !== null && t.gps_lng !== null).length,
+      poikkeamia: poikkeamaLuotu,
+      poikkeamatRatkaistu: Math.min(poikkeamaRatkaistu, poikkeamaLuotu),
+      tila: valmis ? "valmis" : aloitus ? "aloitettu" : "ei_tapahtumia",
+    };
+  }).sort((a, b) => a.hoitoalue.localeCompare(b.hoitoalue, "fi"));
 }
 
 async function haeOrganisaationTapahtumat(organisaatioId: string): Promise<RawTapahtuma[]> {
