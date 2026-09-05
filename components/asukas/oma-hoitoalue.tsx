@@ -96,7 +96,7 @@ export function OmaHoitoalue({ alue }: { alue: AsukasHoitoalue }) {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Hoitoalueen havainnot</h2>
-          <Link href="/asukas/havainnot" className="flex items-center gap-1 text-sm font-medium text-primary">
+          <Link href={`/asukas/${alue.id}/havainnot`} className="flex items-center gap-1 text-sm font-medium text-primary">
             Näytä kaikki
             <ChevronRight className="h-4 w-4" />
           </Link>
@@ -110,6 +110,7 @@ export function OmaHoitoalue({ alue }: { alue: AsukasHoitoalue }) {
 
       {uusiAuki && (
         <TeeHavaintoModaali
+          hoitoalueId={alue.id}
           hoitoalueNimi={alue.nimi}
           onClose={() => setUusiAuki(false)}
         />
