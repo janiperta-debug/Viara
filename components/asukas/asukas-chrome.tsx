@@ -3,18 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, TriangleAlert, User, Bell } from "lucide-react";
-import { ASUKAS, aktiivisiaHavaintoja } from "@/lib/asukas-mock";
+import { Home, TriangleAlert, Bell } from "lucide-react";
 
 const ITEMS = [
   { href: "/asukas", label: "Oma hoitoalue", Icon: Home },
   { href: "/asukas/havainnot", label: "Havainnot", Icon: TriangleAlert },
-  { href: "/asukas/profiili", label: "Profiili", Icon: User },
 ] as const;
 
 export function AsukasChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const aktiiviset = aktiivisiaHavaintoja();
 
   return (
     <div className="flex min-h-screen flex-1 flex-col">
@@ -34,27 +31,13 @@ export function AsukasChrome({ children }: { children: React.ReactNode }) {
             className="logo-blend h-auto w-28"
           />
         </Link>
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/asukas/havainnot"
-            aria-label={`Havainnot, ${aktiiviset} aktiivista`}
-            className="metal-card relative flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            <Bell className="h-5 w-5" strokeWidth={1.75} />
-            {aktiiviset > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[11px] font-semibold text-white">
-                {aktiiviset}
-              </span>
-            )}
-          </Link>
-          <Link
-            href="/asukas/profiili"
-            aria-label={`Profiili — ${ASUKAS.nimi}`}
-            className="metal-card flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-          >
-            {ASUKAS.nimikirjaimet}
-          </Link>
-        </div>
+        <Link
+          href="/asukas/havainnot"
+          aria-label="Havainnot"
+          className="metal-card flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          <Bell className="h-5 w-5" strokeWidth={1.75} />
+        </Link>
       </header>
 
       {/* Sisältö */}
@@ -82,17 +65,10 @@ export function AsukasChrome({ children }: { children: React.ReactNode }) {
                     aktiivinen ? "bg-white text-primary shadow-sm" : "text-muted"
                   }`}
                 >
-                  <span className="relative">
-                    <Icon
-                      className="h-6 w-6"
-                      strokeWidth={aktiivinen ? 2 : 1.75}
-                    />
-                    {href === "/asukas/havainnot" && aktiiviset > 0 && (
-                      <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
-                        {aktiiviset}
-                      </span>
-                    )}
-                  </span>
+                  <Icon
+                    className="h-6 w-6"
+                    strokeWidth={aktiivinen ? 2 : 1.75}
+                  />
                   {label}
                 </Link>
               </li>
