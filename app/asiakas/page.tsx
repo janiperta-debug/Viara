@@ -39,7 +39,7 @@ export default async function AsiakasYleiskuvaPage() {
             <Tilasto luku={alueet.length} teksti="Hoitoaluetta" />
             <Tilasto luku={`${valmisProsentti} %`} teksti="Valmis" vari="#16a34a" />
             <Tilasto luku={tyonAlla} teksti="Työn alla" vari="#d97706" />
-            <Tilasto luku="–" teksti="Avointa havaintoa" vari="#c0392b" />
+            <Tilasto luku={tiedot.avoimetHavainnot} teksti="Avointa havaintoa" vari="#c0392b" />
           </div>
         </section>
 
