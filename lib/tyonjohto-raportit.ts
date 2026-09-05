@@ -65,26 +65,10 @@ type RawHavainto = {
   hoitoalueet: { nimi: string } | null;
 };
 
-function paivaAvain(aikaleima: string) {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Helsinki", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(aikaleima));
-}
-
 function minuutit(a: string | null, b: string | null) {
   if (!a || !b) return null;
   const arvo = Math.round((new Date(b).getTime() - new Date(a).getTime()) / 60000);
   return arvo >= 0 ? arvo : null;
-}
-
-function tapahtumaTeksti(tyyppi: string) {
-  const tekstit: Record<string, string> = {
-    hoitoalue_saapui: "Saapuminen hoitoalueelle",
-    hoitoalue_poistui: "Poistuminen hoitoalueelta",
-    tyovaline_on: "Työväline kytketty",
-    tyovaline_off: "Työväline irrotettu",
-    tyovuoro_alkoi: "Työvuoro aloitettu",
-    tyovuoro_paattyi: "Työvuoro päättynyt",
-  };
-  return tekstit[tyyppi] ?? tyyppi;
 }
 
 function havaintoTeksti(tyyppi: string) {
@@ -106,12 +90,6 @@ function tilaTeksti(tila: string) {
     suljettu: "Suljettu",
   };
   return tekstit[tila] ?? tila;
-}
-
-async function haeOrganisaationHoitoalueet(organisaatioId: string) {
-  const admin = createSupabaseAdminClient();
-  const { data } = await admin.from("hoitoalueet").select("id, nimi, osoite, asiakkuudet!inner(organisaatio_id)").eq("asiakkuudet.organisaatio_id", organisaatioId).order("nimi", { ascending: true });
-  return (data ?? []).map((r) => ({ id: r.id, nimi: r.nimi, osoite: r.osoite }));
 }
 
 export async function haeRaporttiValinnat(organisaatioId: string): Promise<RaporttiValinta> {
@@ -149,40 +127,30 @@ function muodostaHoitopaivakirja(tapahtumat: RawTapahtuma[]): HoitopaivakirjaRiv
   for (const t of tapahtumat) if (t.hoitoalue_id) alueet.set(t.hoitoalue_id, [...(alueet.get(t.hoitoalue_id) ?? []), t]);
 
   for (const alueTapahtumat of alueet.values()) {
-    const tapahtumatJarjestyksessa = [...alueTapahtumat].sort((a, b) => new Date(a.aikaleima).getTime() - new Date(b.aikaleima).getTime());
-    const poistumiset = tapahtumatJarjestyksessa.filter((t) => t.tyyppi === "hoitoalue_poistui");
-    for (const saapuminen of tapahtumatJarjestyksessa.filter((t) => t.tyyppi === "hoitoalue_saapui")) {
-      const lopetus = poistumiset.find((p) => new Date(p.aikaleima).getTime() > new Date(saapuminen.aikaleima).getTime());
-      const samaKayttaja = tapahtumatJarjestyksessa.find((t) => t.tyyppi === "tyovaline_on" && new Date(t.aikaleima).getTime() >= new Date(saapuminen.aikaleima).getTime() && (!lopetus || new Date(t.aikaleima).getTime() <= new Date(lopetus.aikaleima).getTime()));
+    const jarjestetty = [...alueTapahtumat].sort((a, b) => new Date(a.aikaleima).getTime() - new Date(b.aikaleima).getTime());
+    const poistumiset = jarjestetty.filter((t) => t.tyyppi === "hoitoalue_poistui");
+    const saapumiset = jarjestetty.filter((t) => t.tyyppi === "hoitoalue_saapui");
+
+    for (const saapuminen of saapumiset) {
+      const saapumisaika = new Date(saapuminen.aikaleima).getTime();
+      const lopetus = poistumiset.find((p) => new Date(p.aikaleima).getTime() > saapumisaika);
+      const lopetusaika = lopetus ? new Date(lopetus.aikaleima).getTime() : null;
+      const tyovaline = jarjestetty.find((t) => t.tyyppi === "tyovaline_on" && t.kayttaja_id === saapuminen.kayttaja_id && new Date(t.aikaleima).getTime() >= saapumisaika && (!lopetusaika || new Date(t.aikaleima).getTime() <= lopetusaika));
+
       rivit.push({
         paiva: muotoileViaraPaivamaara(saapuminen.aikaleima),
         hoitoalue: saapuminen.hoitoalueet?.nimi ?? "Ei kohdetta",
-        tapahtuma: "Hoitoalueella käynti",
+        tapahtuma: "Hoitoalueen käsittely",
         aloitus: muotoileViaraAika(saapuminen.aikaleima, { hour: "2-digit", minute: "2-digit" }),
         lopetus: lopetus ? muotoileViaraAika(lopetus.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
         kestoMinuutit: minuutit(saapuminen.aikaleima, lopetus?.aikaleima ?? null),
         tekija: saapuminen.kayttajat?.nimi ?? "Tuntematon käyttäjä",
-        tyovaline: samaKayttaja?.tyovalinetyypit?.nimi ?? null,
+        tyovaline: tyovaline?.tyovalinetyypit?.nimi ?? null,
         gps: saapuminen.gps_lat !== null && saapuminen.gps_lng !== null,
       });
     }
-
-    const tyot = tapahtumatJarjestyksessa.filter((t) => t.tyyppi === "tyo_aloitettu");
-    for (const aloitus of tyot) {
-      const lopetus = tapahtumatJarjestyksessa.find((t) => t.tyyppi === "tyo_valmis" && new Date(t.aikaleima).getTime() > new Date(aloitus.aikaleima).getTime());
-      rivit.push({
-        paiva: muotoileViaraPaivamaara(aloitus.aikaleima),
-        hoitoalue: aloitus.hoitoalueet?.nimi ?? "Ei kohdetta",
-        tapahtuma: "Työsuoritus",
-        aloitus: muotoileViaraAika(aloitus.aikaleima, { hour: "2-digit", minute: "2-digit" }),
-        lopetus: lopetus ? muotoileViaraAika(lopetus.aikaleima, { hour: "2-digit", minute: "2-digit" }) : null,
-        kestoMinuutit: minuutit(aloitus.aikaleima, lopetus?.aikaleima ?? null),
-        tekija: aloitus.kayttajat?.nimi ?? "Tuntematon käyttäjä",
-        tyovaline: aloitus.tyovalinetyyppi_id ? (aloitus.tyovalinetyypit?.nimi ?? null) : null,
-        gps: aloitus.gps_lat !== null && aloitus.gps_lng !== null,
-      });
-    }
   }
+
   return rivit.sort((a, b) => `${a.paiva}${a.hoitoalue}${a.aloitus}`.localeCompare(`${b.paiva}${b.hoitoalue}${b.aloitus}`, "fi"));
 }
 
@@ -240,7 +208,7 @@ export async function haeTyonjohtoRaporttiSuodattimilla(organisaatioId: string, 
   };
 }
 
-// Säilytetään vanhan PDF-reitin yhteensopivuus myöhempää poistamista varten.
+// Vanhan PDF-toteutuksen tyypit säilytetään vielä yhteensopivuutta varten.
 export type TyonjohtoRaportti = { id: string; tyyppi: "tyon_suoritus" | "poikkeamat" | "tapahtumat"; otsikko: string; kuvaus: string; aika: string; tapahtumia: number; valmis: boolean };
 export type TyonjohtoRaporttiTapahtuma = { id: string; aikaleima: string; tyyppi: string; hoitoalue: string; tekija: string; tyovaline: string | null; gps: boolean };
 export type TyonjohtoTyonSuoritus = { hoitoalue: string; saapuminen: string | null; poistuminen: string | null; aloitus: string | null; valmistuminen: string | null; tyontekijat: string[]; tyovalineet: string[]; gpsTapahtumia: number; gpsSaapuminen: "varmistettu" | "ei_varmistettu" | "puuttuu"; gpsPoistuminen: "varmistettu" | "ei_varmistettu" | "puuttuu"; poikkeamia: number; poikkeamatRatkaistu: number; tila: "valmis" | "aloitettu" | "ei_tapahtumia" };
