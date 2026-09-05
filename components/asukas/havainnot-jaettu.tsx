@@ -11,16 +11,9 @@ import {
   Check,
   Camera,
 } from "lucide-react";
-import {
-  STATUS_MAARITTEET,
-  TYYPPI_LABEL,
-  OMA_HOITOALUE,
-  type Havainto,
-  type HavaintoStatus,
-  type HavaintoTyyppi,
-} from "@/lib/asukas-mock";
+import type { AsiakasHavainto, AsiakasHavaintoStatus } from "@/lib/asiakas-havainnot";
 
-export const TYYPPI_IKONI: Record<HavaintoTyyppi, typeof Snowflake> = {
+export const TYYPPI_IKONI: Record<AsiakasHavainto["tyyppi"], typeof Snowflake> = {
   liukkaus: Snowflake,
   auraus: Truck,
   hiekoitus: Sparkles,
@@ -28,7 +21,22 @@ export const TYYPPI_IKONI: Record<HavaintoTyyppi, typeof Snowflake> = {
   muu: AlertCircle,
 };
 
-export function StatusMerkki({ status }: { status: HavaintoStatus }) {
+const TYYPPI_LABEL: Record<AsiakasHavainto["tyyppi"], string> = {
+  liukkaus: "Liukkaus",
+  auraus: "Auraus",
+  hiekoitus: "Hiekoitus",
+  vaurio: "Vaurio",
+  muu: "Muu havainto",
+};
+
+const STATUS_MAARITTEET: Record<AsiakasHavaintoStatus, { label: string; vari: string }> = {
+  avoin: { label: "Avoin", vari: "#c0392b" },
+  tyon_alla: { label: "Työn alla", vari: "#d97706" },
+  valmis: { label: "Valmis", vari: "#16a34a" },
+  suljettu: { label: "Suljettu", vari: "#6b7280" },
+};
+
+export function StatusMerkki({ status }: { status: AsiakasHavaintoStatus }) {
   const { label, vari } = STATUS_MAARITTEET[status];
   return (
     <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
@@ -42,7 +50,7 @@ export function StatusMerkki({ status }: { status: HavaintoStatus }) {
   );
 }
 
-export function HavaintoKortti({ havainto }: { havainto: Havainto }) {
+export function HavaintoKortti({ havainto }: { havainto: AsiakasHavainto }) {
   const Ikoni = TYYPPI_IKONI[havainto.tyyppi];
   const { vari } = STATUS_MAARITTEET[havainto.status];
   return (
@@ -54,16 +62,9 @@ export function HavaintoKortti({ havainto }: { havainto: Havainto }) {
         <Ikoni className="h-6 w-6" strokeWidth={1.75} />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="truncate text-base font-semibold text-foreground">
-            {havainto.otsikko}
-          </p>
-          {havainto.omaHavainto && (
-            <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-              Oma
-            </span>
-          )}
-        </div>
+        <p className="truncate text-base font-semibold text-foreground">
+          {havainto.otsikko}
+        </p>
         <p className="mt-0.5 flex items-center gap-2 text-sm text-muted">
           <span>{havainto.aika}</span>
           <span aria-hidden>·</span>
@@ -78,7 +79,7 @@ export function HavaintoKortti({ havainto }: { havainto: Havainto }) {
   );
 }
 
-const TYYPPI_VALINNAT: HavaintoTyyppi[] = [
+const TYYPPI_VALINNAT: AsiakasHavainto["tyyppi"][] = [
   "liukkaus",
   "auraus",
   "hiekoitus",
@@ -86,10 +87,14 @@ const TYYPPI_VALINNAT: HavaintoTyyppi[] = [
   "muu",
 ];
 
-// Tee havainto -flow. Kohdehoitoalue on aina asukkaan OMA alue, ja se
-// näytetään eksplisiittisesti — havainto kuuluu hoitoalueelle.
-export function TeeHavaintoModaali({ onClose }: { onClose: () => void }) {
-  const [tyyppi, setTyyppi] = useState<HavaintoTyyppi | null>(null);
+export function TeeHavaintoModaali({
+  onClose,
+  hoitoalueNimi,
+}: {
+  onClose: () => void;
+  hoitoalueNimi: string;
+}) {
+  const [tyyppi, setTyyppi] = useState<AsiakasHavainto["tyyppi"] | null>(null);
   const [kuva, setKuva] = useState(false);
   const [lahetetty, setLahetetty] = useState(false);
 
@@ -126,7 +131,7 @@ export function TeeHavaintoModaali({ onClose }: { onClose: () => void }) {
               Kiitos, havainto lähetetty
             </p>
             <p className="max-w-xs text-sm text-muted">
-              Havainto näkyy nyt kaikille hoitoalueella {OMA_HOITOALUE.nimi} ja
+              Havainto näkyy nyt kaikille hoitoalueella {hoitoalueNimi} ja
               huoltoyhtiö saa siitä tiedon.
             </p>
             <button
@@ -139,17 +144,15 @@ export function TeeHavaintoModaali({ onClose }: { onClose: () => void }) {
           </div>
         ) : (
           <div className="px-5 pt-4">
-            {/* Kohdehoitoalue — aina näkyvissä */}
             <div className="rounded-2xl bg-white px-4 py-3 shadow-sm">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Hoitoalue
               </p>
               <p className="text-base font-medium text-foreground">
-                {OMA_HOITOALUE.nimi}
+                {hoitoalueNimi}
               </p>
             </div>
 
-            {/* 1. Tyyppi */}
             <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted">
               1 · Havainnon tyyppi
             </p>
@@ -170,15 +173,12 @@ export function TeeHavaintoModaali({ onClose }: { onClose: () => void }) {
                     }`}
                   >
                     <Ikoni className="h-5 w-5 shrink-0" strokeWidth={1.75} />
-                    <span className="text-sm font-medium">
-                      {TYYPPI_LABEL[t]}
-                    </span>
+                    <span className="text-sm font-medium">{TYYPPI_LABEL[t]}</span>
                   </button>
                 );
               })}
             </div>
 
-            {/* 2. Kuvaus */}
             <label className="mt-5 block">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted">
                 2 · Kuvaus
@@ -190,7 +190,6 @@ export function TeeHavaintoModaali({ onClose }: { onClose: () => void }) {
               />
             </label>
 
-            {/* 3. Valokuva (valinnainen, mock) */}
             <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted">
               3 · Valokuva (valinnainen)
             </p>
@@ -198,9 +197,7 @@ export function TeeHavaintoModaali({ onClose }: { onClose: () => void }) {
               type="button"
               onClick={() => setKuva((k) => !k)}
               className={`mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-2xl px-5 shadow-sm transition-transform duration-150 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
-                kuva
-                  ? "bg-primary/10 text-primary"
-                  : "bg-white text-foreground"
+                kuva ? "bg-primary/10 text-primary" : "bg-white text-foreground"
               }`}
             >
               {kuva ? (
