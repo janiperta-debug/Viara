@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, CircleCheck, CircleAlert, MapPin, User, Wrench, Clock, FileText } from "lucide-react";
+import { ArrowLeft, CircleCheck, CircleAlert, MapPin, User, Wrench, Clock, FileText, Download } from "lucide-react";
 import { haeOmaOrganisaatioId } from "@/lib/tyonjohto-havainnot";
 import { haeTyonjohtoRaportti } from "@/lib/tyonjohto-raportit";
 import { muotoileViaraAika } from "@/lib/viara-aika";
@@ -22,7 +22,10 @@ export default async function RaporttiPage({ params }: { params: Promise<{ id: s
   const gpsClass = (tila: "varmistettu" | "ei_varmistettu" | "puuttuu") => tila === "varmistettu" ? "text-green-700" : "text-amber-700";
 
   return <div className="flex flex-col gap-5">
-    <Link href="/tyonjohto/raportit" className="inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:underline"><ArrowLeft className="h-4 w-4" /> Takaisin raportteihin</Link>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <Link href="/tyonjohto/raportit" className="inline-flex w-fit items-center gap-2 text-sm font-medium text-primary hover:underline"><ArrowLeft className="h-4 w-4" /> Takaisin raportteihin</Link>
+      <a href={`/api/tyonjohto/raportit/${id}/pdf`} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"><Download className="h-4 w-4" /> Lataa PDF</a>
+    </div>
     <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-sm font-medium text-muted">{data.raportti.aika}</p><h1 className="mt-1 text-2xl font-semibold text-foreground">{data.raportti.otsikko}</h1><p className="mt-1 text-sm text-muted">{data.raportti.kuvaus}</p></div><span className="inline-flex items-center gap-1.5 rounded-full bg-green-600/10 px-3 py-1.5 text-sm font-medium text-green-700"><CircleCheck className="h-4 w-4" strokeWidth={2} /> Saatavilla</span></div>
     {onTyosuoritus ? <>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><div className="metal-card rounded-2xl p-4"><div className="text-sm text-muted">Valmiit hoitoalueet</div><div className="mt-1 text-2xl font-semibold text-foreground">{valmiit}</div></div><div className="metal-card rounded-2xl p-4"><div className="text-sm text-muted">Keskeneräiset</div><div className="mt-1 text-2xl font-semibold text-foreground">{keskeneraiset}</div></div><div className="metal-card rounded-2xl p-4"><div className="text-sm text-muted">Poikkeamia sisältävät</div><div className="mt-1 text-2xl font-semibold text-foreground">{poikkeamaAlueet}</div></div><div className="metal-card rounded-2xl p-4"><div className="text-sm text-muted">GPS-varmistetut</div><div className="mt-1 text-2xl font-semibold text-foreground">{gpsVarmistetut}</div></div></div>
