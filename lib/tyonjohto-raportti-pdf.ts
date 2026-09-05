@@ -124,8 +124,8 @@ function lineCommand(x1: number, y1: number, x2: number, y2: number, color = BOR
 function makePage(data: PdfRaportti, pageLines: PdfLine[], pageIndex: number, pageCount: number) {
   const commands: string[] = [];
   commands.push("q");
+  commands.push("BT");
 
-  // Viara-brändätty tunnus: yksinkertainen V-merkki, joka toimii myös ilman rasterikuvaa.
   commands.push(`${BRAND} rg`);
   commands.push(`${MARGIN_X} ${TOP_Y - 3} m ${MARGIN_X + 8} ${TOP_Y - 19} l ${MARGIN_X + 16} ${TOP_Y - 3} l ${MARGIN_X + 12} ${TOP_Y - 3} l ${MARGIN_X + 8} ${TOP_Y - 12} l ${MARGIN_X + 4} ${TOP_Y - 3} l h f`);
   commands.push(`${DARK} rg /FB 15 Tf 1 0 0 1 ${MARGIN_X + 24} ${TOP_Y - 15} Tm (VIARA) Tj`);
@@ -159,6 +159,7 @@ function makePage(data: PdfRaportti, pageLines: PdfLine[], pageIndex: number, pa
   commands.push(lineCommand(MARGIN_X, FOOTER_Y + 18, MARGIN_X + CONTENT_WIDTH, FOOTER_Y + 18, BORDER, 0.6));
   commands.push(`${MUTED} rg /FR 7.5 Tf 1 0 0 1 ${MARGIN_X} ${FOOTER_Y} Tm (Viara  ·  ${escapePdfText(data.otsikko)}) Tj`);
   commands.push(`${MUTED} rg /FR 7.5 Tf 1 0 0 1 ${PAGE_WIDTH - MARGIN_X - 62} ${FOOTER_Y} Tm (Sivu ${pageIndex + 1} / ${pageCount}) Tj`);
+  commands.push("ET");
   commands.push("Q");
   return commands.join("\n");
 }
