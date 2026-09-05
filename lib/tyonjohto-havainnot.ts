@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { muotoileViaraAika } from "@/lib/viara-aika";
 
 export type TyonjohtoHavaintoTila = "avoin" | "tyon_alla" | "valmis" | "suljettu";
 export type TyonjohtoHavaintoTyyppi = "liukkaus" | "auraus" | "hiekoitus" | "vaurio" | "muu";
@@ -127,7 +128,7 @@ export async function haeTyonjohtoHavainnot(
       tyyppi,
       otsikko: tyyppiOtsikko(tyyppi),
       kuvaus: kuvausMuotoile(havainto.sijainti_kuvaus, havainto.lisatiedot),
-      aika: new Date(havainto.luotu).toLocaleString("fi-FI"),
+      aika: muotoileViaraAika(havainto.luotu),
       aikaleima: havainto.luotu,
       tila,
       tekija: tekija?.nimi ?? "Tuntematon käyttäjä",
