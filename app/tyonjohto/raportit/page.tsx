@@ -1,4 +1,5 @@
-import { FileText, CircleCheck, ClipboardList, TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import { FileText, CircleCheck, ClipboardList, TriangleAlert, ChevronRight } from "lucide-react";
 import { haeOmaOrganisaatioId } from "@/lib/tyonjohto-havainnot";
 import { haeTyonjohtoRaportit } from "@/lib/tyonjohto-raportit";
 import { vaadiRooli } from "@/lib/reitti-suojaus";
@@ -38,16 +39,17 @@ export default async function RaportitPage() {
                     </span>
                   )}
                 </div>
-
                 <div>
                   <h2 className="text-base font-semibold text-foreground">{raportti.otsikko}</h2>
                   <p className="text-sm text-muted">{raportti.kuvaus}</p>
                   <p className="mt-1 text-xs text-muted">{raportti.aika}</p>
                 </div>
-
                 <div className="mt-auto flex items-center justify-between rounded-lg border border-border bg-white/60 px-3 py-2 text-xs text-muted">
-                  <span>Tapahtumia</span>
-                  <span className="font-semibold tabular-nums text-foreground">{raportti.tapahtumia}</span>
+                  <span>{raportti.tapahtumia} tapahtumaa</span>
+                  <Link href={`/tyonjohto/raportit/${raportti.id}`} className="inline-flex items-center gap-1 font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                    Avaa raportti
+                    <ChevronRight className="h-4 w-4" strokeWidth={1.75} />
+                  </Link>
                 </div>
               </article>
             );
