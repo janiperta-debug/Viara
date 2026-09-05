@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase-admin";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { muotoileViaraAika } from "@/lib/viara-aika";
 
 export type AsiakasHavaintoStatus = "avoin" | "tyon_alla" | "valmis" | "suljettu";
 export type AsiakasHavaintoTyyppi = "liukkaus" | "auraus" | "hiekoitus" | "vaurio" | "muu";
@@ -63,7 +64,7 @@ function kuvausMuotoile(sijainti: string | null, lisatiedot: unknown) {
 
 function muotoileAika(aikaleima: string | null): string | null {
   if (!aikaleima) return null;
-  return new Intl.DateTimeFormat("fi-FI", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(aikaleima));
+  return muotoileViaraAika(aikaleima, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 export async function haeAsiakasHavainnot(): Promise<AsiakasHavainto[] | null> {
