@@ -4,14 +4,15 @@ import { useTransition } from "react";
 import { TriangleAlert, Check } from "lucide-react";
 import { ratkaisePoikkeama } from "@/app/actions/poikkeamat";
 import type { Poikkeama } from "@/lib/poikkeamat";
+import { muotoileViaraAika } from "@/lib/viara-aika";
 
 function aika(aikaleima: string) {
-  return new Intl.DateTimeFormat("fi-FI", {
+  return muotoileViaraAika(aikaleima, {
     day: "2-digit",
     month: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(aikaleima));
+  });
 }
 
 export function PoikkeamatNakyma({
