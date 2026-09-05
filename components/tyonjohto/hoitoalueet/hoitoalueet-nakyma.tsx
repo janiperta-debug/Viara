@@ -22,6 +22,7 @@ export type HoitoalueRivi = {
   lat: number | null;
   lng: number | null;
   rajaGeoJson: MmlHoitoalueKohde["rajaGeoJson"];
+  lasnaoloalueMetrit: number;
 };
 
 type Props = { hoitoalueet: HoitoalueRivi[]; asiakkuudet: Asiakkuus[] };
@@ -115,6 +116,7 @@ export function HoitoalueetNakyma({ hoitoalueet, asiakkuudet }: Props) {
               </div>
               <dl className="mt-4 space-y-3 text-sm">
                 <div><dt className="text-muted">Kiinteistötunnus</dt><dd className="mt-0.5 font-medium text-foreground">{valittu.kiinteistotunnus || "Ei määritetty"}</dd></div>
+                <div><dt className="text-muted">Läsnäoloalue</dt><dd className="mt-0.5 font-medium text-foreground">{valittu.lasnaoloalueMetrit > 0 ? "+" : ""}{valittu.lasnaoloalueMetrit} m</dd></div>
                 <div><dt className="text-muted">Karttasijainti</dt><dd className="mt-0.5 font-medium text-foreground">{valittu.lat !== null && valittu.lng !== null ? "Sijainti käytettävissä" : "Ei vielä määritetty"}</dd></div>
               </dl>
               {valittu.lat === null && <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-xs leading-5 text-muted">Kiinteistörajaa ei ole vielä liitetty. Alue ei ole vielä käytettävissä GPS-hoitoalueena.</div>}
