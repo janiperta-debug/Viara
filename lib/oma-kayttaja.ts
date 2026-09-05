@@ -6,6 +6,7 @@ export type ProfiiliTiedot = {
   rooli: string;
   rooliLabel: string;
   initiaalit: string;
+  avatarUrl: string | null;
 };
 
 // Esitysdata varalta, jos backend ei vielä palauta kaikkia kenttiä.
@@ -16,6 +17,7 @@ const MOCK: ProfiiliTiedot = {
   rooli: "kuljettaja",
   rooliLabel: "Kuljettaja",
   initiaalit: "JP",
+  avatarUrl: null,
 };
 
 const ROOLI_LABELIT: Record<string, string> = {
@@ -71,12 +73,18 @@ export async function haeOmaKayttaja(): Promise<ProfiiliTiedot> {
         ? (kayttaja.rooli as string)
         : MOCK.rooli;
 
+    const avatarUrl =
+      typeof user?.user_metadata?.avatar_url === "string"
+        ? user.user_metadata.avatar_url
+        : null;
+
     return {
       nimi,
       email,
       rooli,
       rooliLabel: roolinLabel(rooli),
       initiaalit: initiaaleista(nimi),
+      avatarUrl,
     };
   } catch {
     // Jos backend ei ole käytettävissä, näytetään esitysdata.
